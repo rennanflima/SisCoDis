@@ -1,0 +1,321 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..." appendToBody="true"  
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <p:fieldset legend="Cadastro de Salas">
+            <div style="float: right;">
+                <h:panelGrid columns="4" cellpadding="4" cellspacing="10">
+                    <h:graphicImage alt="Liberada" library="imgs" name="ativado.png" />
+                    <h:outputText style="font-style: italic; font-size: 11px;" value="Sala liberada"/>
+                    <h:graphicImage alt="Alerta" library="imgs" name="alerta.png" />
+                    <h:outputText style="font-style: italic; font-size: 11px;" value="Sala com equipamento(s) defeituoso(s)"/>
+                    <h:graphicImage alt="Bloqueada" library="imgs" name="desativado.png" />
+                    <h:outputText style="font-style: italic; font-size: 11px;" value="Sala bloqueada"/>
+                    <p:graphicImage alt="Acessibilidade" style="border: none" value="/resources/imgs/acs.png" />
+                    <h:outputText style="font-style: italic; font-size: 11px;" value="Sala com Acessibilidade"/>
+                </h:panelGrid>
+            </div>
+            <h:form id="formSalas">
+                <p:growl id="aviso" life="5000"/>
+
+
+                <br/>
+                <br/>
+                <!-- Botão Novo -->
+                <p:commandButton value="Nova Sala" icon="ui-icon-document"
+                                 oncomplete="inserir.show()"/>
+
+                <br/>
+                <br/>
+                <!-- Tabela de Exibição das Salas -->
+                <p:dataTable id="tabelaSalas" value="#{salasBean.salas}"
+                             var="s" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"   
+                             rowsPerPageTemplate="5,10,15" widgetVar="salaTable" 
+                             emptyMessage="Não foram encontradas Salas cadastradas" >
+
+                    <f:facet name="header">  
+                        <h:outputText value="LISTA DE SALAS" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="detaS" update=":detSala, :detSalaCadeira, :detS" oncomplete="detalhaSala.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{s}" target="#{salasBean.sala}"/>
+                        </p:commandLink>
+                        <p:tooltip for="detaS" value="Exibe o detalhamento da Sala" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+
+                    <p:column sortBy="#{s.numero}" filterBy="#{s.numero}" filterStyle="width: 100px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="NÚMERO DA SALA"/>
+                        </f:facet>
+                        #{s.numero}
+                        <p:graphicImage id="ac" alt="Acessibilidade" style="border: none" value="/resources/imgs/acs.png" rendered="#{s.andar eq 'Térreo' || s.andar eq 'Subsolo'}"/>
+                        <p:tooltip for="ac" value="Sala com Acessibilidade" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+                    <p:column width="90" sortBy="#{s.capacidade}">
+                        <f:facet name="header">
+                            <h:outputText value="CAPACIDADE"/>
+                        </f:facet>
+                        <center>
+                            #{s.capacidade}
+                        </center>
+                    </p:column>
+                    <p:column sortBy="#{s.situacao}" width="80">
+                        <f:facet name="header">
+                            <h:outputText value="SITUAÇÃO"/>
+                        </f:facet>
+                        <center>
+                            <h:graphicImage library="imgs" name="#{salasBean.verificaStatus(s)}"/>
+                        </center>
+                    </p:column>
+                    <p:column sortBy="#{s.bloco.nome}"  filterBy="#{s.bloco.nome}" filterStyle="width: 80px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="BLOCO"/>
+                        </f:facet>
+                        #{s.bloco.nome}
+                    </p:column>
+                    <p:column width="70">
+                        <f:facet name="header">
+                            <h:outputText value="ANDAR"/>
+                        </f:facet>
+                        <center>
+                            #{s.andar}
+                        </center>
+                    </p:column>
+
+                    <p:column width="160">
+                        <f:facet name="header">
+                            <h:outputText value="AÇÕES"/>
+                        </f:facet>
+                        <center>
+                            <p:commandButton value="Editar" oncomplete="inserir.show()" icon="ui-icon-pencil" update=":cadastroS" actionListener="#{salasBean.conta()}">
+                                <f:setPropertyActionListener value="#{s}" target="#{salasBean.sala}"/>
+                            </p:commandButton>
+                            <p:commandButton value="Excluir" icon="ui-icon-trash" oncomplete="confirmation.show()" >
+                                <f:setPropertyActionListener value="#{s}" target="#{salasBean.sala}"/>
+                            </p:commandButton>
+                        </center>
+                    </p:column>
+                </p:dataTable>
+                <br />
+
+            </h:form>
+        </p:fieldset>
+        <br />
+
+        <!-- Caixa de Confirmação de Exclusão -->
+        <p:confirmDialog id="confirmDialog" message="Tem certeza que deseja excluir ?"  appendToBody="true"
+                         header="Confirmação de exclusão" severity="alert" widgetVar="confirmation" closable="false">  
+            <h:form>
+                <p:commandButton id="confirm" value="Sim" oncomplete="confirmation.hide()"  
+                                 action="#{salasBean.excluir()}" update=":formSalas:tabelaSalas, :formSalas:aviso">
+                </p:commandButton>  
+                <p:commandButton id="decline" value="Não" onclick="confirmation.hide()" type="button" />   
+            </h:form>
+        </p:confirmDialog>
+
+        <!-- Modal do Formulário de Salas -->
+        <p:dialog widgetVar="inserir" resizable="false"
+                  header="Inserir Salas" appendToBody="true"
+                  modal="true" width="600">
+            <h:form id="cadastroS">
+                <h:inputHidden value="#{salasBean.sala.idSalas}"/>
+                <p:growl id="aviso2" life="5000"/>
+                <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+                    <p:outputLabel for="num" value="Número: "/>
+                    <p:inputText id="num" required="true" value="#{salasBean.sala.numero}" label="Número" size="10" maxlength="20"
+                                 requiredMessage="O campo 'Número' é obrigatório"
+                                 validatorMessage="O campo 'Número' deve começar por número">
+                        <f:validateRegex pattern="([0-9 ]+)||([0-9 ]+)([a-zA-ZÀ-ú ]+)||([0-9 ]+)-([a-zA-ZÀ-ú ]+)||([0-9 ]+) -([a-zA-ZÀ-ú ]+)||([0-9 ]+)- ([a-zA-ZÀ-ú ]+)||
+                                         ([0-9 ]+) - ([a-zA-ZÀ-ú ]+)||([0-9 ]+) ([a-zA-ZÀ-ú ]+)"/>
+                    </p:inputText>
+                    <p:message id="msgNum" for="num" display="icon"/>
+
+                    <p:outputLabel for="cap" value="Capacidade: "/>
+                    <p:inputText id="cap" required="true" value="#{salasBean.sala.capacidade}" label="Capacidade" size="10" maxlength="20"
+                                 onkeypress="return SomenteNumero(event)" requiredMessage="O campo 'Capacidade' é obrigatório"
+                                 converterMessage="Digite apenas número na Capacidade!">
+                        <f:convertNumber integerOnly="true"/>
+                    </p:inputText>
+                    <p:message id="msgCap" for="cap" display="icon"/>
+
+                    <p:outputLabel for="sit" value="Situação: "/>
+                    <p:selectOneRadio id="sit" required="true" value="#{salasBean.sala.situacao}" label="Situação" immediate="true"
+                                      requiredMessage="O campo 'Situação' é obrigatório">
+                        <f:selectItem itemLabel="Liberada" itemValue="Liberada" />
+                        <f:selectItem itemLabel="Bloqueada" itemValue="Bloqueada" />
+                        <p:ajax event="change" update="osLab, os"/>
+                    </p:selectOneRadio>
+                    <p:message id="msgSit" for="sit" display="icon"/>
+
+                    <h:panelGrid id="osLab">
+                        <p:outputLabel id="labObs" for="obsSitS" value="Observação da Sala: " rendered="#{salasBean.sala.situacao eq 'Bloqueada'}" />
+                    </h:panelGrid>
+
+                    <h:panelGrid id="os">
+                        <h:panelGroup>
+                            <p:inputTextarea id="obsSitS" rendered="#{salasBean.sala.situacao eq 'Bloqueada'}" required="#{salasBean.sala.situacao eq 'Bloqueada'}"
+                                             rows="5" cols="50" value="#{salasBean.sala.obsSituacao}" label="Observação da Sala"
+                                             counter="counter" maxlength="250" counterTemplate="{0} caracteres restantes" autoResize="false"
+                                             requiredMessage="O campo 'Observação da Sala' é obrigatório">
+                            </p:inputTextarea>
+                            <br/>
+                            <h:outputText id="counter"/>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                    <p:message id="msgobsSitS" for="obsSitS" display="icon"/>
+
+                    <p:outputLabel value="Bloco: " for="bloc"/>
+                    <p:selectOneMenu id="bloc" required="true" value="#{salasBean.idBlocos}" 
+                                     immediate="true" requiredMessage="O campo 'Bloco' é obrigatório">
+                        <f:selectItem itemLabel="Selecione um Bloco..." itemValue="#{null}" /> 
+                        <f:selectItems value="#{salasBean.blocos}" var="b"
+                                       itemLabel="#{b.nome}" itemValue="#{b.idBlocos}" />
+                        <p:ajax event="change" update="andar" immediate="true" listener="#{salasBean.limpaCombo()}"/>
+                    </p:selectOneMenu>
+                    <p:message id="msgBloc" for="bloc" display="icon"/>
+
+                    <p:outputLabel value="Andar: " for="andar"/>
+                    <p:selectOneMenu id="andar" value="#{salasBean.andar}" label="Andar"   
+                                     immediate="true" 
+                                     requiredMessage="O campo 'Andar' é obrigatório">
+                        <f:selectItem itemLabel="Selecione um Andar..." itemValue="" /> 
+                        <f:selectItems value="#{salasBean.pisos}" />
+                    </p:selectOneMenu>
+                    <p:message id="msgAndar" for="andar" display="icon"/>
+
+                </h:panelGrid>
+                <fieldset style="border: 1px solid #77D5F7;padding: 3px;">
+                    <legend style="padding: 6px; font-weight: bold;">Cadeira</legend>
+                    <p>
+                        <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+                            <p:outputLabel value="Tipo de Cadeira: " for="cadeira"/>
+                            <p:selectOneMenu id="cadeira" required="true" value="#{salasBean.idCadeiras}" 
+                                             immediate="true" requiredMessage="O campo 'Cadeira' é obrigatório">
+                                <f:selectItem itemLabel="Selecione um Tipo de Cadeira..." itemValue="" /> 
+                                <f:selectItems value="#{cadeirasBean.cadeiras}" var="c"
+                                               itemLabel="#{c.descricao}" itemValue="#{c.idCadeiras}" />
+                                <p:ajax event="change" update="prop"/>
+                            </p:selectOneMenu>
+                            <p:message id="msgCad" for="cadeira" display="icon"/>
+
+                            <h:outputLabel value="Proprietário: "/>
+                            <h:outputText id="prop" value="#{salasBean.proprietario}" style="font-weight:bold"/>
+                            <h:outputText value=" "/>
+
+                            <p:outputLabel value="Tamanho da Cadeira: " for="tamCadeira"/>
+                            <p:inputText id="tamCadeira" required="true" value="#{salasBean.sala.tamanhoCad}" label="Tamanho da Cadeira" size="40" maxlength="30"
+                                         requiredMessage="O campo 'Tamanho da Cadeira' é obrigatório"
+                                         validatorMessage="É permitido apenas letras no campo 'Tamanho da Cadeira'">
+                                <f:validateRegex pattern="([A-Za-zÀ-ú ]+)"/>
+                            </p:inputText>
+                            <p:message id="msgTam" for="tamCadeira" display="icon"/>
+                        </h:panelGrid>
+                    </p>
+                </fieldset>
+                <br />
+                <div style="float: left; font-size: 11px; font-weight:bold;">
+                    * Campos obrigatórios
+                </div>
+                <div style="float: right">
+                    <p:commandButton update=":formSalas:tabelaSalas, aviso2, cadastroS" value="Salvar" icon="ui-icon-disk" action="#{salasBean.salvar}"/>
+                    <p:commandButton update="cadastroS" value="Limpar" action="#{salasBean.limpar()}" immediate="true" process="@this"/>
+                </div>
+            </h:form>
+            <p:ajax event="close" update="cadastroS" listener="#{salasBean.limpar()}"/>
+        </p:dialog>
+
+
+        <!-- Detalhamento da Sala -->
+        <p:dialog id="detS" widgetVar="detalhaSala" header="Detalhamento da Sala" width="500" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+            <p:graphicImage id="ac" alt="Acessibilidade" style="border: none; float: right;" value="/resources/imgs/acs.png" rendered="#{salasBean.sala.andar eq 'Térreo' || salasBean.sala.andar eq 'Subsolo'}"/>
+            <p:tooltip for="ac" value="Sala com Acessibilidade" showEffect="fade" hideEffect="fade"/>
+            <h:panelGrid id="detSala" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Número: "/>
+                <h:outputText value="#{salasBean.sala.numero}" style="font-weight:bold"/>
+
+                <h:outputText value="Capacidade: "/>
+                <h:outputText value="#{salasBean.sala.capacidade}" style="font-weight:bold"/>
+
+                <h:outputText value="Situação: "/>
+                <h:outputText value="#{salasBean.sala.situacao}" style="font-weight:bold; color: green" rendered="#{salasBean.sala.situacao eq 'Liberada'}"/>
+                <h:outputText value="#{salasBean.sala.situacao}" style="font-weight:bold; color: darkred" rendered="#{salasBean.sala.situacao eq 'Bloqueada'}"/>
+
+                <h:outputText value="Observação da Sala: "/>
+                <p:panel style="border: none; max-width: 50px;">
+                    <h:outputText value="#{salasBean.sala.obsSituacao}" style="font-weight:bold; color: darkred;"/>
+                </p:panel>
+
+                <h:outputText value="Bloco: "/>
+                <h:outputText value="#{salasBean.sala.bloco.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Andar: "/>
+                <h:outputText value="#{salasBean.sala.andar}" style="font-weight:bold"/>
+
+            </h:panelGrid>
+            <fieldset style="border: 1px solid #77D5F7;padding: 3px;">
+                <legend style="padding: 6px; font-weight: bold;">Cadeira</legend>
+                <p>
+                    <h:panelGrid id="detSalaCadeira" columns="2" cellpadding="4" cellspacing="10">
+                        <h:outputText value="Tipo de Cadeira: "/>
+                        <h:outputText value="#{salasBean.sala.cadeira.descricao}" style="font-weight:bold"/>
+
+                        <h:outputLabel value="Proprietário: "/>
+                        <h:outputText value="#{salasBean.sala.cadeira.proprietario}" style="font-weight:bold"/>
+
+                        <h:outputText value="Tamanho da Cadeira: "/>
+                        <h:outputText value="#{salasBean.sala.tamanhoCad}" style="font-weight:bold"/>
+                    </h:panelGrid>
+                </p>
+            </fieldset>
+            <br />
+            <p:dataTable id="tabelaEquipSala" value="#{salasBean.eqsDaSala}" 
+                         var="e" rows="5" paginator="true" paginatorPosition="bottom" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"
+                         emptyMessage="Não foram encontrados Equipamentos nesta Sala">
+
+                <f:facet name="header">
+                    <h:outputText value="Lista de Equipamentos da Sala"/>
+                </f:facet>
+
+                <p:column width="150">
+                    <f:facet name="header">
+                        <h:outputText value="Equipamento"/>
+                    </f:facet>
+                    #{e.equipamento.nome}
+                </p:column>
+                <p:column width="70">
+                    <f:facet name="header">
+                        <h:outputText value="Quantidade"/>
+                    </f:facet>
+                    #{e.qtd}
+                </p:column>
+                <p:column width="100">
+                    <f:facet name="header">
+                        <h:outputText value="Situação"/>
+                    </f:facet>
+                    #{e.situacao}
+                </p:column>
+            </p:dataTable>
+        </p:dialog>
+
+    </ui:define>
+</ui:composition>

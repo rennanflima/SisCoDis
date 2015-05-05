@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..."   
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <p:fieldset legend="Cadastro de Instituições">
+            <h:form id="formInstituicoes">
+                <p:growl id="aviso" life="5000"/>
+
+
+                <br />
+                <br />
+                <!-- Botão Novo -->
+                <p:commandButton value="Nova Instituição" icon="ui-icon-document" action="#{instituicoesBean.limpar}"
+                                 oncomplete="inserir.show()"/>
+                <br />
+                <br />
+                <!-- Tabela de Exibição -->
+                <p:dataTable id="tabelaInstituicoes" value="#{instituicoesBean.instituicoes}"
+                             var="i" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"  
+                             rowsPerPageTemplate="5,10,15" widgetVar="instiTable" 
+                             emptyMessage="Não foram encontradas Instituições cadastradas" >  
+
+                    <f:facet name="header">  
+                        <h:outputText value="LISTA DE INSTITUIÇÕES" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="deta" update=":detInsti" oncomplete="detalhes.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{i}" target="#{instituicoesBean.insti}"/>
+                        </p:commandLink>
+                        <p:tooltip for="deta" value="Exibe o detalhamento da Instituição" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+
+                    <p:column id="nomeColuna" sortBy="#{i.nome}" width="230">
+                        <f:facet name="header">
+                            <h:outputText value="NOME"/>
+                        </f:facet>
+                        #{i.nome}
+                    </p:column>
+                    <p:column id="siglaColuna" sortBy="#{i.sigla}" width="160" filterBy="#{i.sigla}" filterStyle="width: 100px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="SIGLA"/>
+                        </f:facet>
+                        #{i.sigla}
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="AÇÕES"/>
+                        </f:facet>
+                        <center>
+                            <p:commandButton value="Editar" icon="ui-icon-pencil" oncomplete="inserir.show()"
+                                             update=":cadastroI">
+                                <f:setPropertyActionListener value="#{i}" target="#{instituicoesBean.insti}"/>
+                            </p:commandButton>
+                            <p:commandButton value="Excluir" icon="ui-icon-trash" oncomplete="confirmation.show()">
+                                <f:setPropertyActionListener value="#{i}" target="#{instituicoesBean.insti}"/>
+                            </p:commandButton>
+                        </center>
+                    </p:column>
+                </p:dataTable>
+                <br/>
+            </h:form>
+        </p:fieldset>
+
+        <!-- Caixa de Confirmação de Exclusão -->
+        <p:confirmDialog id="confirmDialog" message="Tem certeza que deseja excluir ?" appendToBody="true"  
+                         header="Confirmação de exclusão" severity="alert" widgetVar="confirmation" closable="false">  
+            <h:form>
+                <p:commandButton id="confirm" value="Sim" oncomplete="confirmation.hide()"  
+                                 action="#{instituicoesBean.excluir()}" update=":formInstituicoes:tabelaInstituicoes, :formInstituicoes:aviso">
+                </p:commandButton>  
+                <p:commandButton id="decline" value="Não" onclick="confirmation.hide()" action="#{instituicoesBean.limpar()}"/>   
+            </h:form>
+        </p:confirmDialog>
+
+        <!-- Modal do Formulário -->
+        <p:dialog widgetVar="inserir" header="Inserir Instituições" width="620" appendToBody="true"
+                  resizable="false" modal="true">
+            <h:form id="cadastroI">
+                <h:inputHidden value="#{instituicoesBean.insti.idInstituicoes}"/>
+                <p:focus context="cadastroI"/> 
+                <p:growl id="aviso2" life="5000"/>
+                <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+                    <p:outputLabel for="nome" value="Nome: "/>
+                    <p:inputText id="nome" required="true" value="#{instituicoesBean.insti.nome}" label="Nome" size="60" maxlength="60"
+                                 requiredMessage="O campo 'Nome' é obrigatório"
+                                 validatorMessage="É permitido apenas letras no campo 'Nome'">
+                        <f:validateRegex pattern="([A-Za-zÀ-ú ]+)"/>
+                    </p:inputText>
+                    <p:message id="msgNome" for="nome" display="icon"/>
+
+                    <p:outputLabel for="sigla" value="Sigla: "/>
+                    <p:inputText id="sigla" required="true" value="#{instituicoesBean.insti.sigla}" label="Sigla" maxlength="30" size="35"
+                                 requiredMessage="O campo 'Sigla' é obrigatório"
+                                 validatorMessage="É permitido apenas letras no campo 'Sigla'">
+                        <f:validateRegex pattern="([A-Za-zÀ-ú ]+)"/>
+                    </p:inputText>
+                    <p:message id="msgSigla" for="sigla" display="icon"/>
+
+                </h:panelGrid>
+                <br />
+                <div style="float: left; font-size: 11px; font-weight:bold;">
+                    * Campos obrigatórios
+                </div>
+                <div style="float: right">
+                    <p:commandButton update=":formInstituicoes:tabelaInstituicoes, :formInstituicoes:aviso, cadastroI" value="Salvar" icon="ui-icon-disk" action="#{instituicoesBean.salvar}" />
+                    <p:commandButton update="cadastroI" value="Limpar" action="#{instituicoesBean.limpar}" immediate="true" process="@this"/>
+                </div>
+            </h:form>
+            <p:ajax event="close" update="cadastroI" listener="#{instituicoesBean.limpar()}"/>
+        </p:dialog>
+
+        <!-- Detalhamento da Instituição-->
+        <p:dialog id="det" widgetVar="detalhes" header="Detalhamento da Instituição" width="460" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+
+            <h:panelGrid id="detInsti" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Nome: "/>
+                <h:outputText value="#{instituicoesBean.insti.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Sigla: "/>
+                <h:outputText value="#{instituicoesBean.insti.sigla}" style="font-weight:bold"/>
+            </h:panelGrid>
+        </p:dialog>
+
+    </ui:define>
+
+</ui:composition>

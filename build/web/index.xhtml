@@ -1,0 +1,208 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="/templates/template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..."   appendToBody="true"
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+        <h:form>
+            <p:commandLink value="Acessar" action="login.xhtml" style="float: right;"/>
+        </h:form>
+        <center>
+            <h:form>
+                <p:growl id="aviso" life="5000"/>
+
+                <p:panel id="opcoesBusca" style="width: 600px;">
+                    <h:panelGrid columns="3">
+                        <p:outputLabel for="op" value="Selecione o Parametro de Busca: "/>
+                        <p:selectOneRadio id="op" value="#{localizarTurmaSalaBean.opcao}" label="Parametro de Busca" immediate="true"
+                                          requiredMessage="O campo 'Parametro de Busca' é obrigatório">
+                            <f:selectItem itemLabel="Curso e/ou Período" itemValue="cursoper" />
+                            <f:selectItem itemLabel="Turma" itemValue="turmaS" />
+                            <f:selectItem itemLabel="Sala" itemValue="salaB" />
+                            <p:ajax event="change" update="cursoOP, cursoOPS, per, perS, turmaOP, tumaO, salaOP, salaOPS"/>
+                        </p:selectOneRadio>
+                    </h:panelGrid>
+                    <h:panelGrid columns="4" cellpadding="4" cellspacing="5">
+                        <!-- Parametros de Busca - CURSO E/OU PERÍODO -->
+                        <h:panelGroup>
+                            <h:panelGrid id="cursoOP">
+                                <h:outputLabel id="cursoL" for="curso" value="Curso: *" rendered="#{localizarTurmaSalaBean.opcao eq 'cursoper'}" />
+                            </h:panelGrid>
+                            <h:panelGrid id="cursoOPS">
+                                <p:autoComplete id="curso" required="#{localizarTurmaSalaBean.opcao eq 'cursoper'}" value="#{localizarTurmaSalaBean.curso}" completeMethod="#{localizarTurmaSalaBean.completeCursos}"
+                                                converter="cursoConverter" var="curso" itemLabel="#{curso.nome}" size="50"
+                                                rendered="#{localizarTurmaSalaBean.opcao eq 'cursoper'}" 
+                                                itemValue="#{curso}" forceSelection="true"  immediate="true" requiredMessage="O campo 'Curso' é obrigatório"
+                                                maxResults="5" effect="blind">
+                                    <p:ajax update="periodo"/>
+                                    <p:column>
+                                        #{curso.nome}<p:spacer width="5" height="0"/>#{localizarTurmaSalaBean.listaTurnosCurso(curso)}<p:spacer width="10" height="0"/> - <p:spacer width="10" height="0"/>#{curso.codigo}
+                                    </p:column>
+                                </p:autoComplete>
+                                <p:message id="msgCurso" for="curso" display="icon"/>
+                            </h:panelGrid>
+                        </h:panelGroup>
+                        <br/>
+                        <h:panelGroup>
+                            <h:panelGrid id="per">
+                                <p:outputLabel for="periodo" value="Período: " rendered="#{localizarTurmaSalaBean.opcao eq 'cursoper'}" />
+                            </h:panelGrid>
+                            <h:panelGrid id="perS">
+                                <p:selectOneMenu id="periodo" value="#{localizarTurmaSalaBean.periodo}"  
+                                                 immediate="true" requiredMessage="O campo 'Período' é obrigatório"
+                                                 rendered="#{localizarTurmaSalaBean.opcao eq 'cursoper'}">
+                                    <f:selectItem itemLabel="Selecione um Período..." itemValue="" /> 
+                                    <f:selectItems value="#{localizarTurmaSalaBean.peridoCurso}" var="p"
+                                                   itemLabel="#{p.periodo}" itemValue="#{p.idPeriodos}" />
+                                </p:selectOneMenu>
+                                <p:message id="msgPeriodo" for="periodo" display="icon"/>
+                            </h:panelGrid>
+                        </h:panelGroup>
+
+                        <!-- Parametros de Busca - TURMA -->
+                        <h:panelGrid id="turmaOP">
+                            <p:outputLabel for="cod" value="Código da Turma: " rendered="#{localizarTurmaSalaBean.opcao eq 'turmaS'}" />
+                        </h:panelGrid>
+                        <h:panelGrid id="tumaO">
+                            <p:inputText id="cod" required="#{localizarTurmaSalaBean.opcao eq 'turmaS'}" value="#{localizarTurmaSalaBean.codTurma}" 
+                                         label="Código da Turma" size="10" maxlength="20"
+                                         rendered="#{localizarTurmaSalaBean.opcao eq 'turmaS'}"
+                                         requiredMessage="O campo 'Código da Turma' é obrigatório">
+                            </p:inputText>
+                            <p:message id="msgCod" for="cod" display="icon"/>
+                        </h:panelGrid>
+
+                        <!-- Parametros de Busca - SALA -->
+                        <h:panelGrid id="salaOP">
+                            <p:outputLabel for="sala" value="Número da Sala: " rendered="#{localizarTurmaSalaBean.opcao eq 'salaB'}" />
+                        </h:panelGrid>
+                        <h:panelGrid id="salaOPS">
+                            <p:autoComplete id="sala" required="#{localizarTurmaSalaBean.opcao eq 'salaB'}" value="#{localizarTurmaSalaBean.sala}" completeMethod="#{localizarTurmaSalaBean.completeSalas}"
+                                            rendered="#{localizarTurmaSalaBean.opcao eq 'salaB'}"
+                                            converter="salaConverter" var="sala" itemLabel="#{sala.numero}"
+                                            itemValue="#{sala}" forceSelection="true"  immediate="true" requiredMessage="O campo 'Número da Sala' é obrigatório"
+                                            maxResults="5" effect="blind"/>
+                            <p:message id="msgSala" for="sala" display="icon"/>
+                        </h:panelGrid>
+                    </h:panelGrid>
+                    <br />
+                    <div style="float: left; font-size: 11px; font-weight:bold;">
+                        * Campos obrigatórios
+                    </div>
+                    <div style="text-align: right">
+                        <!-- Botão Localizar -->
+                        <p:commandButton value="Localizar" action="#{localizarTurmaSalaBean.limpaLista()}" update="tabelaTurmas,aviso"/>
+                        <p:commandButton value="Limpar" action="#{localizarTurmaSalaBean.limpar()}" update="tabelaTurmas,aviso, opcoesBusca" immediate="true" process="@this"/>
+                    </div>
+                </p:panel>
+                <br />
+                <br />
+                <br />
+                <!-- Tabela de Exibição -->
+                <h:panelGrid id="tabelaTurmas">
+                    <p:dataTable id="tabelaT" value="#{localizarTurmaSalaBean.turmas}"
+                                 var="tm" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                                 {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"   
+                                 rowsPerPageTemplate="5,10,15" widgetVar="turmTable" 
+                                 emptyMessage="Não foram encontradas Turmas cadastradas">
+
+                        <f:facet name="header">  
+                            <h:outputText value="LISTA DE TURMAS" />  
+                        </f:facet>
+                        <p:column style="width: 18px">
+                            <p:commandLink id="deta" update=":detTurma" oncomplete="detalhes.show()">
+                                <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                                <f:setPropertyActionListener value="#{tm}" target="#{localizarTurmaSalaBean.turma}"/>
+                            </p:commandLink>
+                            <p:tooltip for="deta" value="Exibe o detalhamento da Turma" showEffect="fade" hideEffect="fade"/>
+                        </p:column>
+                        <p:column >
+                            <f:facet name="header">
+                                <h:outputText value="INSTITUIÇÃO"/>
+                            </f:facet>
+                            #{tm.curso.instituicao.sigla}
+                        </p:column>
+                        <p:column width="320">
+                            <f:facet name="header">
+                                <h:outputText value="CURSO"/>
+                            </f:facet>
+                            #{tm.curso.nome}
+                        </p:column>
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="CÓDIGO DA TURMA"/>
+                            </f:facet>
+                            #{tm.codigo}
+                        </p:column>
+                        <p:column>
+                            <f:facet name="header">
+                                <h:outputText value="PERÍODO"/>
+                            </f:facet>
+                            #{tm.periodo.periodo}
+                        </p:column>
+                        <p:column width="80">
+                            <f:facet name="header">
+                                <h:outputText value="SALA"/>
+                            </f:facet>
+                            <center>
+                                #{tm.sala.numero}
+                            </center>
+                        </p:column>
+                        <p:column width="80">
+                            <f:facet name="header">
+                                <h:outputText value="BLOCO"/>
+                            </f:facet>
+                            <center>
+                                #{tm.sala.bloco.nome}
+                            </center>
+                        </p:column>
+                    </p:dataTable>
+                </h:panelGrid>
+            </h:form>
+        </center>
+
+        <!-- Detalhamento da Turma -->
+        <p:dialog id="det" widgetVar="detalhes" header="Detalhamento da Turma" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+
+            <h:panelGrid id="detTurma" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Curso: "/>
+                <h:outputText value="#{localizarTurmaSalaBean.turma.curso.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Instituição: "/>
+                <h:outputText value="#{localizarTurmaSalaBean.turma.curso.instituicao.sigla}" style="font-weight:bold"/>
+
+                <h:outputText value="Código da Turma: "/>
+                <h:outputText value="#{localizarTurmaSalaBean.turma.codigo}" style="font-weight:bold"/>
+
+                <h:outputText value="Período: "/>
+                <h:outputText value="#{localizarTurmaSalaBean.turma.periodo.periodo}" style="font-weight:bold"/>
+
+                <h:outputText value="Quantidade de Alunos: "/>
+                <h:outputText value="#{localizarTurmaSalaBean.turma.qtdAlunos}" style="font-weight:bold"/>
+
+                <h:outputText value="Status: "/>
+                <h:outputText value="#{localizarTurmaSalaBean.turma.status}" style="font-weight:bold; color: green" rendered="#{localizarTurmaSalaBean.turma.status eq 'Cursando'}"/>
+                <h:outputText value="#{localizarTurmaSalaBean.turma.status}" style="font-weight:bold; color: darkred" rendered="#{localizarTurmaSalaBean.turma.status eq 'Formada'}"/>
+
+                <h:outputText value="Sala: "/>
+                <h:outputText value="#{localizarTurmaSalaBean.listaSala()}" style="font-weight:bold"/>
+            </h:panelGrid>
+        </p:dialog>
+
+    </ui:define>
+
+</ui:composition>

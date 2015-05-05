@@ -1,0 +1,220 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..." appendToBody="true" 
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <p:fieldset legend="Cadastro de Turmas">
+            <h:form id="formTumas">
+                <p:growl id="aviso" life="5000"/>
+
+
+                <br/>
+                <br/>
+                <!-- Botão Novo -->
+                <p:commandButton value="Nova Turma" icon="ui-icon-document"
+                                 oncomplete="inserir.show()"/>
+                <br/>
+                <br/>
+                <!-- Tabela de Exibição -->
+                <p:dataTable id="tabelaTurmas" value="#{turmasBean.turmas}"
+                             var="tm" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}" 
+                             rowsPerPageTemplate="5,10,15" widgetVar="turmTable" 
+                             emptyMessage="Não foram encontrados Turmas cadastrados">
+
+                    <f:facet name="header">  
+                        <h:outputText value="LISTA DE TURMAS" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="deta" update=":detTurma" oncomplete="detalhes.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{tm}" target="#{turmasBean.turma}"/>
+                        </p:commandLink>
+                        <p:tooltip for="deta" value="Exibe o detalhamento da Turma" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+
+                    <p:column sortBy="#{tm.curso.nome}" filterBy="#{tm.curso.nome}" filterStyle="width: 143px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="CURSO"/>
+                        </f:facet>
+                        #{tm.curso.nome}
+                    </p:column>
+                    <p:column sortBy="#{tm.codigo}">
+                        <f:facet name="header">
+                            <h:outputText value="INSTITUIÇÃO"/>
+                        </f:facet>
+                        #{tm.curso.instituicao.sigla}
+                    </p:column>
+                    <p:column sortBy="#{tm.codigo}" filterBy="#{tm.codigo}" filterStyle="width: 60px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="CÓDIGO"/>
+                        </f:facet>
+                        <center>
+                            #{tm.codigo}
+                        </center>
+                    </p:column>
+                    <p:column sortBy="#{tm.periodo.periodo}" width="50">
+                        <f:facet name="header">
+                            <h:outputText value="PERÍODO"/>
+                        </f:facet>
+                        <center>
+                            #{tm.periodo.periodo}
+                        </center>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="QTD ALUNOS"/>
+                        </f:facet>
+                        <center>
+                            #{tm.qtdAlunos}
+                        </center>
+                    </p:column>
+                    <p:column width="160">
+                        <f:facet name="header">
+                            <h:outputText value="AÇÕES"/>
+                        </f:facet>
+                        <center>
+                            <p:commandButton value="Editar" oncomplete="inserir.show()" icon="ui-icon-pencil"
+                                             update=":cadastroT">
+                                <f:setPropertyActionListener value="#{tm}" target="#{turmasBean.turma}"/>
+                            </p:commandButton>
+                            <p:commandButton value="Excluir" icon="ui-icon-trash" oncomplete="confirmation.show()">
+                                <f:setPropertyActionListener value="#{tm}" target="#{turmasBean.turma}"/>
+                            </p:commandButton>
+                        </center>
+                    </p:column>
+                </p:dataTable>
+                <br />
+            </h:form>
+        </p:fieldset>
+
+        <!-- Caixa de Confirmação de Exclusão -->
+        <p:confirmDialog id="confirmDialog" message="Tem certeza que deseja excluir ?" appendToBody="true" 
+                         header="Confirmação de exclusão" severity="alert" widgetVar="confirmation" closable="false">  
+            <h:form>
+                <p:commandButton id="confirm" value="Sim" oncomplete="confirmation.hide()"  
+                                 action="#{turmasBean.excluir()}" update=":formTumas:tabelaTurmas, :formTumas:aviso">
+                </p:commandButton>  
+                <p:commandButton id="decline" value="Não" onclick="confirmation.hide()" type="button" action="#{turmasBean.limpar()}"/>   
+            </h:form>
+        </p:confirmDialog>
+
+        <!-- Modal do Formulário -->
+        <p:dialog widgetVar="inserir" width="560" resizable="false"
+                  header="Inserir Turmas" appendToBody="true"
+                  modal="true">
+            <h:form id="cadastroT">
+                <h:inputHidden value="#{turmasBean.turma.idTurmas}"/>
+                <p:growl id="aviso2" life="5000"/>
+                <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+                    <p:outputLabel value="Instituição: " for="insti"/>
+                    <p:selectOneMenu id="insti" required="true" value="#{turmasBean.idInstituicoes}" 
+                                     immediate="true" requiredMessage="O campo 'Instituição' é obrigatório">
+                        <f:selectItem itemLabel="Selecione uma Instituição..." itemValue="" /> 
+                        <f:selectItems value="#{instituicoesBean.instituicoes}" var="i"
+                                       itemLabel="#{i.sigla}" itemValue="#{i.idInstituicoes}" />
+                        <p:ajax update="curso"/>
+                    </p:selectOneMenu>
+                    <p:message id="msgInsti" for="insti" display="icon"/>
+
+
+                    <p:outputLabel value="Curso: " for="curso"/>
+                    <p:autoComplete id="curso" required="true" value="#{turmasBean.curso}" completeMethod="#{turmasBean.completeCursos}"
+                                    converter="cursoConverter" var="curso" itemLabel="#{curso.nome}" size="50"
+                                    disabled="#{(turmasBean.idInstituicoes == null) ? true : false}"
+                                    itemValue="#{curso}" forceSelection="true"  immediate="true" requiredMessage="O campo 'Curso' é obrigatório"
+                                    maxResults="5" effect="blind">
+                        <p:ajax event="blur" update="per" />
+                        <p:column>
+                            #{curso.nome}<p:spacer width="5" height="0"/>#{localizarTurmaSalaBean.listaTurnosCurso(curso)}<p:spacer width="10" height="0"/> - <p:spacer width="10" height="0"/>#{curso.codigo}
+                        </p:column>
+                    </p:autoComplete>
+                    <p:message id="msgCurso" for="curso" display="icon"/>
+
+                    <p:outputLabel for="cod" value="Código: "/>
+                    <p:inputText id="cod" required="true" value="#{turmasBean.turma.codigo}" label="Código" size="20" maxlength="25"
+                                 requiredMessage="O campo 'Código' é obrigatório">
+                    </p:inputText>
+                    <p:message id="msgCod" for="cod" display="icon"/>
+
+                    <p:outputLabel for="per" value="Período: "/>
+                    <p:selectOneMenu id="per" required="true" value="#{turmasBean.idPeriodos}" 
+                                     immediate="true" requiredMessage="O campo 'Período' é obrigatório">
+                        <f:selectItem itemLabel="Selecione um Período..." itemValue="" /> 
+                        <f:selectItems value="#{turmasBean.peridoCurso}" var="p"
+                                       itemLabel="#{p.periodo}" itemValue="#{p.idPeriodos}" />
+                    </p:selectOneMenu>
+                    <p:message id="msgPer" for="per" display="icon"/>
+
+                    <p:outputLabel for="qtdAlunos" value="Quantidade de Alunos: "/>
+                    <p:inputText id="qtdAlunos" required="true" value="#{turmasBean.turma.qtdAlunos}" label="Quantidade de Alunos" 
+                                 onkeypress="return SomenteNumero(event)" requiredMessage="O campo 'Quantidade de Alunos' é obrigatório"
+                                 size="10" maxlength="20" converterMessage="Digite apenas número na Quantidade de Alunos!"
+                                 validatorMessage="O máximo de alunos permitidos é 100">
+                        <f:convertNumber integerOnly="true"/>
+                        <f:validateLongRange maximum="100"/>
+                    </p:inputText>
+                    <p:message id="msgQtdA" for="qtdAlunos" display="icon"/>
+
+                </h:panelGrid>
+                <br />
+                <div style="float: left; font-size: 11px; font-weight:bold;">
+                    * Campos obrigatórios
+                </div>
+                <div style="float: right">
+                    <p:commandButton update=":formTumas:tabelaTurmas, :formTumas:aviso, cadastroT" value="Salvar" icon="ui-icon-disk" action="#{turmasBean.salvar}"/>
+                    <p:commandButton update="cadastroT" value="Limpar" action="#{turmasBean.limpar()}" immediate="true" process="@this"/>
+                </div>
+            </h:form>
+            <p:ajax event="close" update="cadastroT" listener="#{turmasBean.limpar()}" immediate="true" process="@this" />
+        </p:dialog>
+
+        <!-- Detalhamento da Turma -->
+        <p:dialog id="det" widgetVar="detalhes" header="Detalhamento da Turma" width="500" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+
+            <h:panelGrid id="detTurma" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Curso: "/>
+                <h:outputText value="#{turmasBean.turma.curso.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Instituição: "/>
+                <h:outputText value="#{turmasBean.turma.curso.instituicao.sigla}" style="font-weight:bold"/>
+
+                <h:outputText value="Código da Turma: "/>
+                <h:outputText value="#{turmasBean.turma.codigo}" style="font-weight:bold"/>
+
+                <h:outputText value="Período: "/>
+                <h:outputText value="#{turmasBean.turma.periodo.periodo}" style="font-weight:bold"/>
+
+                <h:outputText value="Quantidade de Alunos: "/>
+                <h:outputText value="#{turmasBean.turma.qtdAlunos}" style="font-weight:bold"/>
+
+                <h:outputText value="Status: "/>
+                <h:outputText value="#{turmasBean.turma.status}" style="font-weight:bold; color: green"/>
+
+                <h:outputText value="Turno(s): "/>
+                <h:outputText value="#{turmasBean.listaTurnos()}" style="font-weight:bold"/>
+                
+                <h:outputText value="Sala: "/>
+                <h:outputText value="#{turmasBean.listaSala()}" style="font-weight:bold"/>
+            </h:panelGrid>
+        </p:dialog>
+
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="./../../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+        <h:form id="formSalas">
+            <p:growl id="aviso" life="5000"/>
+
+            <p:fieldset legend="Bloqueio/Desbloqueio de Salas">
+                <div style="float: right;">
+                    <h:panelGrid columns="4" cellpadding="4" cellspacing="10">
+                        <h:graphicImage alt="Liberada" library="imgs" name="ativado.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px;" value="Sala liberada"/>
+                        <h:graphicImage alt="Alerta" library="imgs" name="alerta.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px;" value="Sala com equipamento(s) defeituoso(s)"/>
+                        <h:graphicImage alt="Bloqueada" library="imgs" name="desativado.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px;" value="Sala bloqueada"/>
+                        <p:graphicImage alt="Acessibilidade" style="border: none" value="/resources/imgs/acs.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px;" value="Sala com Acessibilidade"/>
+                    </h:panelGrid>
+                </div>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <!-- Tabela de Exibição das Salas -->
+                <p:dataTable id="tabelaSalas" value="#{bloqueiaDesbloqueiaSalaBean.salas}" style="width: 766px"
+                             var="s" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"   
+                             rowsPerPageTemplate="5,10,15" widgetVar="salaTable" 
+                             emptyMessage="Não foram encontradas Salas cadastradas" >
+
+                    <f:facet name="header">  
+                        <h:outputText value="LISTA DE SALAS" />  
+                    </f:facet>
+
+                    <p:column width="150" filterBy="#{s.numero}" filterStyle="width: 100px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="NÚMERO DA SALA"/>
+                        </f:facet>
+                        #{s.numero}
+                        <p:graphicImage id="ac" alt="Acessibilidade" style="border: none;" value="/resources/imgs/acs.png" rendered="#{s.andar eq 'Térreo' || s.andar eq 'Subsolo'}"/>
+                        <p:tooltip for="ac" value="Sala com Acessibilidade" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+                    <p:column width="100">
+                        <f:facet name="header">
+                            <h:outputText value="CAPACIDADE"/>
+                        </f:facet>
+                        <center>
+                            #{s.capacidade}
+                        </center>
+                    </p:column>
+                    <p:column width="100">
+                        <f:facet name="header">
+                            <h:outputText value="SITUAÇÃO"/>
+                        </f:facet>
+                        <center>
+                            <h:graphicImage library="imgs" name="#{bloqueiaDesbloqueiaSalaBean.verificaStatus(s)}"/>
+                        </center>
+                    </p:column>
+                    <p:column width="80">
+                        <f:facet name="header">
+                            <h:outputText value="BLOCO"/>
+                        </f:facet>
+                        #{s.bloco.nome}
+                    </p:column>
+                    <p:column width="80">
+                        <f:facet name="header">
+                            <h:outputText value="ANDAR"/>
+                        </f:facet>
+                        <center>
+                            #{s.andar}
+                        </center>
+                    </p:column>
+
+                    <p:column style="width: 18px">
+                        <f:facet name="header">
+                            <h:outputText value="DETALHAMENTO"/>
+                        </f:facet>
+                        <center>
+                            <p:commandLink id="detaS" ajax="false" action="/servicos/bloqueioDesbloqueioSala/detalhaSala.xhtml">
+                                <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                                <f:setPropertyActionListener value="#{s}" target="#{bloqueiaDesbloqueiaSalaBean.sala}"/>
+                            </p:commandLink>
+                            <p:tooltip for="detaS" value="Exibe o detalhamento da Sala" showEffect="fade" hideEffect="fade"/>
+                        </center>
+                    </p:column>
+                </p:dataTable>
+                <br />
+            </p:fieldset>
+            <br />
+        </h:form>
+
+    </ui:define>
+
+</ui:composition>

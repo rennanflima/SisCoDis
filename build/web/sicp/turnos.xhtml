@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..."   
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <p:fieldset legend="Cadastro de Turnos">
+            <h:form id="formTurnos">
+                <p:growl id="aviso" life="5000"/>
+
+
+                <br/>
+                <br/>
+                <!-- Botão Novo -->
+                <p:commandButton value="Novo Turno" icon="ui-icon-document" action="#{turnosBean.limpar}"
+                                 oncomplete="inserir.show()"/>
+                <br/>
+                <br/>
+                <!-- Tabela de Exibição -->
+                <p:dataTable id="tabelaTurnos" value="#{turnosBean.turnos}"
+                             var="t" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"   
+                             rowsPerPageTemplate="5,10,15" widgetVar="turnosTable" 
+                             emptyMessage="Não foram encontrados Turnos cadastrados" >  
+
+                    <f:facet name="header">  
+                        <h:outputText value="LISTA DE TURNOS" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="deta" update=":detTurno" oncomplete="detalhes.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{t}" target="#{turnosBean.turno}"/>
+                        </p:commandLink>
+                        <p:tooltip for="deta" value="Exibe o detalhamento do Turno" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+
+                    <p:column sortBy="#{t.nome}" width="200"  filterBy="#{t.nome}" filterStyle="width: 150px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="NOME"/>
+                        </f:facet>
+                        <h:outputText value="#{t.nome}"/>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="AÇÕES"/>
+                        </f:facet>
+                        <center>
+                            <p:commandButton value="Editar" icon="ui-icon-pencil" oncomplete="inserir.show()"
+                                             update=":cadastroT">
+                                <f:setPropertyActionListener value="#{t}" target="#{turnosBean.turno}"/>
+                            </p:commandButton>
+                            <p:commandButton value="Excluir" icon="ui-icon-trash" oncomplete="confirmation.show()">
+                                <f:setPropertyActionListener value="#{t}" target="#{turnosBean.turno}"/>
+                            </p:commandButton>
+                        </center>
+                    </p:column>
+                </p:dataTable>
+                <br />
+            </h:form>
+        </p:fieldset>
+
+        <!-- Caixa de Confirmação de Exclusão -->
+        <p:confirmDialog id="confirmDialog" message="Tem certeza que deseja excluir ?" appendToBody="true"  
+                         header="Confirmação de exclusão" severity="alert" widgetVar="confirmation" closable="false">  
+            <h:form>
+                <p:commandButton id="confirm" value="Sim" oncomplete="confirmation.hide()"  
+                                 action="#{turnosBean.excluir}" update=":formTurnos:tabelaTurnos, :formTurnos:aviso">
+                </p:commandButton>  
+                <p:commandButton id="decline" value="Não" onclick="confirmation.hide()" action="#{turnosBean.limpar()}"/>   
+            </h:form>
+        </p:confirmDialog>
+
+        <!-- Modal do Formulário -->
+        <p:dialog widgetVar="inserir" header="Inserir Turnos" width="530" appendToBody="true" resizable="false"
+                  modal="true">
+            <h:form id="cadastroT">
+                <h:inputHidden value="#{turnosBean.turno.idTurnos}"/>
+                <p:focus context="cadastroT"/> 
+                <p:growl id="aviso2" life="5000"/>
+                <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+                    <p:outputLabel for="nome" value="Nome: "/>
+                    <p:inputText id="nome" required="true" value="#{turnosBean.turno.nome}" label="Nome" size="60" maxlength="40"
+                                 requiredMessage="O campo 'Nome' é obrigatório"
+                                 validatorMessage="É permitido apenas letras no campo 'Nome'">
+                        <f:validateRegex pattern="([A-Za-zÀ-ú ]+)"/>
+                    </p:inputText>
+                    <p:message id="msgNome" for="nome" display="icon"/>
+                </h:panelGrid>
+                <br />
+                <div style="float: left; font-size: 11px; font-weight:bold;">
+                    * Campos obrigatórios
+                </div>
+                <div style="float: right">
+                    <p:commandButton update=":formTurnos:tabelaTurnos, :formTurnos:aviso, cadastroT" value="Salvar" icon="ui-icon-disk" action="#{turnosBean.salvar}"/>
+                    <p:commandButton update="cadastroT" value="Limpar" action="#{turnosBean.limpar}" immediate="true" process="@this"/>
+                </div>
+            </h:form>
+            <p:ajax event="close" update="cadastroT" listener="#{turnosBean.limpar}"/>
+        </p:dialog>
+
+        <!-- Detalhamento do Turno -->
+        <p:dialog id="det" widgetVar="detalhes" header="Detalhamento do Turno" width="400" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+
+            <h:panelGrid id="detTurno" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Nome: "/>
+                <h:outputText value="#{turnosBean.turno.nome}" style="font-weight:bold"/>
+
+            </h:panelGrid>
+        </p:dialog>
+
+    </ui:define>
+
+</ui:composition>

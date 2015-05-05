@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="./../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..." appendToBody="true"  
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <p:fieldset legend="Sala por Equipamento">
+            <h:form id="formEqSala">
+                <p:growl id="aviso" life="5000"/>
+                <br/>
+                <br/>
+                <h:panelGrid id="filtro" columns="4" cellpadding="4" cellspacing="10">
+                    <p:outputLabel for="cbEqS" value="Equipamento: "/>
+                    <p:selectOneMenu id="cbEqS" required="true" value="#{tipoEquipamentoBean.idEquipamento}"
+                                     immediate="true" label="Equipamento" requiredMessage="O campo 'Equipamento' é obrigatório">
+                        <f:selectItem itemLabel="Selecione um Equipamento..." itemValue="" /> 
+                        <f:selectItems value="#{equipamentosBean.equipamentos}" var="qes"
+                                       itemLabel="#{qes.nome}" itemValue="#{qes.idEquipamentos}" />
+                    </p:selectOneMenu>
+                    <p:commandButton value="Localizar" update="tabelaSalas, aviso" action="#{tipoEquipamentoBean.carregaLista()}"/>
+                    <p:commandButton value="Cancelar" update="cbEqS, tabelaSalas, aviso" action="#{tipoEquipamentoBean.limparLista()}" immediate="true" process="@this"/>
+                </h:panelGrid>
+                <br/>
+                <div style="float: right; font-size: 11px; font-weight:bold;">
+                    * Campos obrigatórios
+                </div>
+                <br/>
+                <br/>
+                <!-- Tabela de Exibição das Salas -->
+                <p:dataTable id="tabelaSalas" value="#{tipoEquipamentoBean.eqs}" style="width: 766px"
+                             var="e" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"   
+                             rowsPerPageTemplate="5,10,15" widgetVar="salaTable" 
+                             emptyMessage="Não foram encontradas Salas cadastradas" >
+
+                    <f:facet name="header">  
+                        <h:outputText value="LOCALIZAÇÃO DO EQUIPAMENTO" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="detaS" update=":detSala, :detSalaCadeira :tabelaEquipSala, :detS" oncomplete="detalhaSala.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{e}" target="#{tipoEquipamentoBean.eqSala}"/>
+                        </p:commandLink>
+                        <p:tooltip for="detaS" value="Exibe o detalhamento da Sala" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+
+                    <p:column width="150" sortBy="#{e.sala.numero}">
+                        <f:facet name="header">
+                            <h:outputText value="NÚMERO DA SALA"/>
+                        </f:facet>
+                        #{e.sala.numero}
+                    </p:column>
+                    <p:column width="100">
+                        <f:facet name="header">
+                            <h:outputText value="BLOCO"/>
+                        </f:facet>
+                        #{e.sala.bloco.nome}
+                    </p:column>
+                    <p:column width="100">
+                        <f:facet name="header">
+                            <h:outputText value="ANDAR"/>
+                        </f:facet>
+                        <center>
+                            #{e.sala.andar}
+                        </center>
+                    </p:column>
+                </p:dataTable>
+
+            </h:form>
+        </p:fieldset>
+
+        <!-- Detalhamento da Sala -->
+        <p:dialog id="detS" widgetVar="detalhaSala" header="Detalhamento do Equipamento da Sala" width="500" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+            <p:graphicImage id="ac" alt="Acessibilidade" style="border: none; float: right;" value="/resources/imgs/acs.png" rendered="#{tipoEquipamentoBean.sala.andar eq 'Térreo' || tipoEquipamentoBean.sala.andar eq 'Subsolo'}"/>
+            <p:tooltip for="ac" value="Sala com Acessibilidade" showEffect="fade" hideEffect="fade"/>
+            <h:panelGrid id="detSala" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Número: "/>
+                <h:outputText value="#{tipoEquipamentoBean.sala.numero}" style="font-weight:bold"/>
+
+                <h:outputText value="Capacidade: "/>
+                <h:outputText value="#{tipoEquipamentoBean.sala.capacidade}" style="font-weight:bold"/>
+
+                <h:outputText value="Situação: "/>
+                <h:outputText value="#{tipoEquipamentoBean.sala.situacao}" style="font-weight:bold; color: green" rendered="#{tipoEquipamentoBean.sala.situacao eq 'Liberada'}"/>
+                <h:outputText value="#{tipoEquipamentoBean.sala.situacao}" style="font-weight:bold; color: darkred" rendered="#{tipoEquipamentoBean.sala.situacao eq 'Bloqueada'}"/>
+
+                <h:outputText value="Observação da Sala: "/>
+                <h:outputText value="#{tipoEquipamentoBean.sala.obsSituacao}" style="font-weight:bold; color: darkred"/>
+
+                <h:outputText value="Bloco: "/>
+                <h:outputText value="#{tipoEquipamentoBean.sala.bloco.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Andar: "/>
+                <h:outputText value="#{tipoEquipamentoBean.sala.andar}" style="font-weight:bold"/>
+
+            </h:panelGrid>
+            <fieldset style="border: 1px solid #77D5F7;padding: 3px;">
+                <legend style="padding: 6px; font-weight: bold;">Cadeira</legend>
+                <p>
+                    <h:panelGrid id="detSalaCadeira" columns="2" cellpadding="4" cellspacing="10">
+                        <h:outputText value="Tipo de Cadeira: "/>
+                        <h:outputText value="#{tipoEquipamentoBean.sala.cadeira.descricao}" style="font-weight:bold"/>
+
+                        <h:outputLabel value="Proprietário: "/>
+                        <h:outputText value="#{tipoEquipamentoBean.sala.cadeira.proprietario}" style="font-weight:bold"/>
+
+                        <h:outputText value="Tamanho da Cadeira: "/>
+                        <h:outputText value="#{tipoEquipamentoBean.sala.tamanhoCad}" style="font-weight:bold"/>
+                    </h:panelGrid>
+                </p>
+            </fieldset>
+            <br />
+            <p:dataTable id="tabelaEquipSala" value="#{tipoEquipamentoBean.eqsDaSala}" 
+                         var="e" rows="5" paginator="true" paginatorPosition="bottom" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"
+                         emptyMessage="Não foram encontrados Equipamentos nesta Sala">
+
+                <f:facet name="header">
+                    <h:outputText value="Lista de Equipamentos da Sala"/>
+                </f:facet>
+
+                <p:column width="150">
+                    <f:facet name="header">
+                        <h:outputText value="Equipamento"/>
+                    </f:facet>
+                    #{e.equipamento.nome}
+                </p:column>
+                <p:column width="70">
+                    <f:facet name="header">
+                        <h:outputText value="Quantidade"/>
+                    </f:facet>
+                    #{e.qtd}
+                </p:column>
+                <p:column width="100">
+                    <f:facet name="header">
+                        <h:outputText value="Situação"/>
+                    </f:facet>
+                    #{e.situacao}
+                </p:column>
+            </p:dataTable>
+        </p:dialog>
+        <br />
+
+    </ui:define>
+
+</ui:composition>

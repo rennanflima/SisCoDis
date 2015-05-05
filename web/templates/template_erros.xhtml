@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <f:view contentType="text/html"/>
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="${facesContext.externalContext.requestContextPath}/resources/css/default.css" rel="stylesheet" type="text/css" />
+        <link href="${facesContext.externalContext.requestContextPath}/resources/css/cssLayout.css" rel="stylesheet" type="text/css" />
+        <title>Sistema de Controle e Distribuição</title>
+    </h:head>
+
+    <h:body>
+       <!--<h:graphicImage id="bg" value="/resources/imgs/fundo.jpg"/>-->
+        <div id="corpo_body" style="padding-bottom: 40px;">
+            <div id="tudo_corpo">
+                <div id="top" style="text-align: center">
+                    <h:graphicImage value="/resources/imgs/banner.jpg"/>
+                </div>
+
+                <div id="content" class="center_content">
+                    <ui:insert name="content">
+                    </ui:insert>
+                </div>
+                <div id="bottom" class="ui-widget ui-widget-header ui-corner-all">
+                    <table style="width: 990px;" border="0">
+                        <tr>
+                            <td style="width: 250px;"></td>
+                            <td align="center" style=" font-size: 12.5px">
+                                Copyright© 2012-2013 - Todos os Direitos Reservados<br/> 
+                                REMA System
+                            </td>
+                            <td style="width: 230px;">
+                                <h:graphicImage value="/resources/imgs/img_rodape.png" style="border-radius: 4px 4px 4px 4px;"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </h:body>
+</html>

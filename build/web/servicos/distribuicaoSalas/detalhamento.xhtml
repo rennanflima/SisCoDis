@@ -1,0 +1,328 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="./../../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..." appendToBody="true"  
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <h:form id="detaTurma" prependId="false">
+            <p:growl id="aviso" life="5000"/>
+            <div style="float: right">
+                <p:commandButton value="Voltar" ajax="false" action="#{distribuicaoSalaBean.mudaCancela()}"/>
+            </div>
+            <center>
+                <div>
+                    <p:fieldset legend="Detalhamento da Turma" style="width: 550px">
+                        <h:panelGrid id="detTurma1" columns="2" cellpadding="4" cellspacing="10">
+
+                            <h:outputText value="Código: "/>
+                            <h:outputText value="#{distribuicaoSalaBean.turma.codigo}" style="font-weight:bold"/>
+
+                        </h:panelGrid>
+
+                        <h:panelGrid id="detTurma" columns="4" cellpadding="4" cellspacing="10">
+
+                            <h:outputText value="Curso: "/>
+                            <h:outputText value="#{distribuicaoSalaBean.turma.curso.nome}" style="font-weight:bold"/>
+
+                            <h:outputText value="Instituição: "/>
+                            <h:outputText value="#{distribuicaoSalaBean.turma.curso.instituicao.sigla}" style="font-weight:bold"/>
+
+                            <h:outputText value="Período: "/>
+                            <h:outputText value="#{distribuicaoSalaBean.turma.periodo.periodo}" style="font-weight:bold"/>
+
+                            <h:outputText value="Quantidade de Alunos: "/>
+                            <h:outputText value="#{distribuicaoSalaBean.turma.qtdAlunos}" style="font-weight:bold"/>
+
+                            <h:outputText value="Status: "/>
+                            <h:outputText value="#{distribuicaoSalaBean.turma.status}" style="font-weight:bold; color: green" rendered="#{distribuicaoSalaBean.turma.status eq 'Cursando'}"/>
+                            <h:outputText value="#{distribuicaoSalaBean.turma.status}" style="font-weight:bold; color: darkred" rendered="#{distribuicaoSalaBean.turma.status eq 'Formada'}"/>
+
+                            <h:outputText value="Turno(s): "/>
+                            <h:outputText value="#{distribuicaoSalaBean.listaTurnos()}" style="font-weight:bold"/>
+
+                            <h:panelGrid id="salaLab" rendered="#{distribuicaoSalaBean.turma.sala.idSalas == null ? false : true}">
+                                <h:outputText value="Sala: "/>
+                            </h:panelGrid>
+                            <h:panelGrid id="sala">
+                                <h:outputText value="#{distribuicaoSalaBean.listaSala()}" rendered="#{distribuicaoSalaBean.turma.sala.idSalas == null ? false : true}" style="font-weight:bold"/>
+                            </h:panelGrid>
+                        </h:panelGrid>
+                    </p:fieldset>
+                </div>
+            </center>
+        </h:form>
+        <div style="float: right;">
+            <h:panelGrid columns="2" cellpadding="4" cellspacing="10">
+                <p:graphicImage alt="Acessibilidade" style="border: none" value="/resources/imgs/acs.png" />
+                <h:outputText style="font-style: italic; font-size: 11px;" value="Sala com Acessibilidade"/>
+            </h:panelGrid>
+        </div>
+        <br/>
+        <br/>
+        <br/>
+        <p:separator/>
+        <br/>
+        <br/>
+        <h:form id="formSalas">
+            <center>
+                <!-- Tabela de Exibição das Salas -->
+                <p:dataTable id="tabelaSalas" value="#{distribuicaoSalaBean.salasTurma}" style="width: 600px" 
+                             var="s" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"   
+                             rowsPerPageTemplate="5,10,15" widgetVar="salaTable" 
+                             emptyMessage="Não foram encontradas Salas" >
+
+                    <f:facet name="header">  
+                        <h:outputText value="LISTA DE SALAS" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <f:facet name="header">
+                            <h:outputText value="VIZUALIZAR SALA"/>
+                        </f:facet>
+                        <center>
+                            <p:commandLink id="detaS" update=":formDetS:detSala, :formDetS:detSalaCadeira, :formDetS:tabelaEquipSala, :detS" oncomplete="detalhaSala.show()">
+                                <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                                <f:setPropertyActionListener value="#{s}" target="#{distribuicaoSalaBean.sala}"/>
+                            </p:commandLink>
+                            <p:tooltip for="detaS" value="Exibe o detalhamento da Sala" showEffect="fade" hideEffect="fade"/>
+                        </center>
+                    </p:column>
+
+                    <p:column filterBy="#{s.numero}" filterStyle="width: 100px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="NÚMERO DA SALA"/>
+                        </f:facet>
+                        #{s.numero}
+                        <p:graphicImage id="ac" alt="Acessibilidade" style="border: none" value="/resources/imgs/acs.png" rendered="#{s.andar eq 'Térreo' || s.andar eq 'Subsolo'}"/>
+                        <p:tooltip for="ac" value="Sala com Acessibilidade" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+                    <p:column width="100">
+                        <f:facet name="header">
+                            <h:outputText value="CAPACIDADE"/>
+                        </f:facet>
+                        <center>
+                            #{s.capacidade}
+                        </center>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="BLOCO"/>
+                        </f:facet>
+                        #{s.bloco.nome}
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="ANDAR"/>
+                        </f:facet>
+                        <center>
+                            #{s.andar}
+                        </center>
+                    </p:column>
+                </p:dataTable>
+            </center>
+            <br />
+        </h:form>
+
+
+        <h:form id="formTurmas">
+
+            <br/>
+            <br/>
+            <!-- Tabela de Exibição Turmas-->
+            <p:dataTable id="tabelaTurmas" value="#{distribuicaoSalaBean.turmasCurso}"  style="width: 800px"
+                         var="tm" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                         {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}" 
+                         widgetVar="turmTable" 
+                         emptyMessage="Não foram encontradas Turmas cadastradas">
+
+                <f:facet name="header">  
+                    <h:outputText value="LOCALIZAÇÃO DAS TURMAS" />  
+                </f:facet>
+
+                <p:column style="width: 18px">
+                    <p:commandLink id="deta" update=":detTurmaCurso" oncomplete="detalhes.show()">
+                        <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                        <f:setPropertyActionListener value="#{tm}" target="#{distribuicaoSalaBean.turmaCurso}"/>
+                    </p:commandLink>
+                    <p:tooltip for="deta" value="Exibe o detalhamento da Turma" showEffect="fade" hideEffect="fade"/>
+                </p:column>
+
+                <p:column sortBy="#{tm.curso.nome}" width="220">
+                    <f:facet name="header">
+                        <h:outputText value="CURSO"/>
+                    </f:facet>
+                    #{tm.curso.nome}
+                </p:column>
+                <p:column sortBy="#{tm.codigo}">
+                    <f:facet name="header">
+                        <h:outputText value="CÓDIGO DA TURMA"/>
+                    </f:facet>
+                    <center>
+                        #{tm.codigo}
+                    </center>
+                </p:column>
+                <p:column sortBy="#{tm.periodo.periodo}">
+                    <f:facet name="header">
+                        <h:outputText value="PERÍODO"/>
+                    </f:facet>
+                    <center>
+                        #{tm.periodo.periodo}
+                    </center>
+                </p:column>
+                <p:column>
+                    <f:facet name="header">
+                        <h:outputText value="QUANTIDADE DE ALUNOS"/>
+                    </f:facet>
+                    <center>
+                        #{tm.qtdAlunos}
+                    </center>
+                </p:column>
+                <p:column>
+                    <f:facet name="header">
+                        <h:outputText value="SALA"/>
+                    </f:facet>
+                    <center>
+                        #{tm.sala.numero}
+                    </center>
+                </p:column>
+                <p:column>
+                    <f:facet name="header">
+                        <h:outputText value="BLOCO"/>
+                    </f:facet>
+                    <center>
+                        #{tm.sala.bloco.nome}
+                    </center>
+                </p:column>
+            </p:dataTable>
+            <br />
+        </h:form>
+
+        <!-- Detalhamento da Sala -->
+        <p:dialog id="detS" widgetVar="detalhaSala" header="Detalhamento do Equipamento da Sala" width="500" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+            <p:graphicImage id="ac" alt="Acessibilidade" style="border: none; float: right;" 
+                            value="/resources/imgs/acs.png" rendered="#{distribuicaoSalaBean.sala.andar eq 'Térreo' || distribuicaoSalaBean.sala.andar eq 'Subsolo'}"/>
+            <p:tooltip for="ac" value="Sala com Acessibilidade" showEffect="fade" hideEffect="fade"/>
+            <h:form id="formDetS">
+                <h:panelGrid id="detSala" columns="2" cellpadding="4" cellspacing="10">
+
+                    <h:outputText value="Número: "/>
+                    <h:outputText value="#{distribuicaoSalaBean.sala.numero}" style="font-weight:bold"/>
+
+                    <h:outputText value="Capacidade: "/>
+                    <h:outputText value="#{distribuicaoSalaBean.sala.capacidade}" style="font-weight:bold"/>
+
+                    <h:outputText value="Situação: "/>
+                    <h:outputText value="#{distribuicaoSalaBean.sala.situacao}" style="font-weight:bold; color: green" rendered="#{distribuicaoSalaBean.sala.situacao eq 'Liberada'}"/>
+                    <h:outputText value="#{distribuicaoSalaBean.sala.situacao}" style="font-weight:bold; color: darkred" rendered="#{distribuicaoSalaBean.sala.situacao eq 'Bloqueada'}"/>
+
+                    <h:outputText value="Observação da Sala: "/>
+                    <h:outputText value="#{distribuicaoSalaBean.sala.obsSituacao}" style="font-weight:bold; color: darkred"/>
+
+                    <h:outputText value="Bloco: "/>
+                    <h:outputText value="#{distribuicaoSalaBean.sala.bloco.nome}" style="font-weight:bold"/>
+
+                    <h:outputText value="Andar: "/>
+                    <h:outputText value="#{distribuicaoSalaBean.sala.andar}" style="font-weight:bold"/>
+                </h:panelGrid>
+
+                <fieldset style="border: 1px solid #77D5F7;padding: 3px;">
+                    <legend style="padding: 6px; font-weight: bold;">Cadeira</legend>
+                    <p>
+                        <h:panelGrid id="detSalaCadeira" columns="2" cellpadding="4" cellspacing="10">
+                            <h:outputText value="Tipo de Cadeira: "/>
+                            <h:outputText value="#{distribuicaoSalaBean.sala.cadeira.descricao}" style="font-weight:bold"/>
+
+                            <h:outputLabel value="Proprietário: "/>
+                            <h:outputText value="#{distribuicaoSalaBean.sala.cadeira.proprietario}" style="font-weight:bold"/>
+
+                            <h:outputText value="Tamanho da Cadeira: "/>
+                            <h:outputText value="#{distribuicaoSalaBean.sala.tamanhoCad}" style="font-weight:bold"/>
+                        </h:panelGrid>
+                    </p>
+                </fieldset>
+                <br />
+                <p:dataTable id="tabelaEquipSala" value="#{distribuicaoSalaBean.eqsDaSala}" 
+                             var="e" rows="5" paginator="true" paginatorPosition="bottom" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"
+                             emptyMessage="Não foram encontrados Equipamentos nesta Sala">
+
+                    <f:facet name="header">
+                        <h:outputText value="Lista de Equipamentos da Sala"/>
+                    </f:facet>
+
+                    <p:column width="150">
+                        <f:facet name="header">
+                            <h:outputText value="Equipamento"/>
+                        </f:facet>
+                        #{e.equipamento.nome}
+                    </p:column>
+                    <p:column width="70">
+                        <f:facet name="header">
+                            <h:outputText value="Quantidade"/>
+                        </f:facet>
+                        #{e.qtd}
+                    </p:column>
+                    <p:column width="100">
+                        <f:facet name="header">
+                            <h:outputText value="Situação"/>
+                        </f:facet>
+                        #{e.situacao}
+                    </p:column>
+                </p:dataTable>
+                <br/>
+                <div style="float: right">
+                    <p:commandButton value="Definir Sala" update=":growlMsg:aviso" oncomplete="detalhaSala.hide()" action="#{distribuicaoSalaBean.salvaSalaTurma()}"/>
+                    <p:commandButton value="Cancelar" oncomplete="detalhaSala.hide()" action="#{distribuicaoSalaBean.limpaSala()}"  />
+                </div>
+            </h:form>
+        </p:dialog>
+
+        <!-- Detalhamento da Turma -->
+        <p:dialog id="det" widgetVar="detalhes" header="Detalhamento da Turma" width="500" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+
+            <h:panelGrid id="detTurmaCurso" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Curso: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turmaCurso.curso.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Instituição: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turmaCurso.curso.instituicao.sigla}" style="font-weight:bold"/>
+
+                <h:outputText value="Código: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turmaCurso.codigo}" style="font-weight:bold"/>
+
+                <h:outputText value="Período: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turmaCurso.periodo.periodo}" style="font-weight:bold"/>
+
+                <h:outputText value="Quantidade de Alunos: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turmaCurso.qtdAlunos}" style="font-weight:bold"/>
+
+                <h:outputText value="Status: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turma.status}" style="font-weight:bold; color: green" rendered="#{distribuicaoSalaBean.turma.status eq 'Cursando'}"/>
+                <h:outputText value="#{distribuicaoSalaBean.turma.status}" style="font-weight:bold; color: darkred" rendered="#{distribuicaoSalaBean.turma.status eq 'Formada'}"/>
+
+                <h:outputText value="Turno(s): "/>
+                <h:outputText value="#{distribuicaoSalaBean.listaTurnos()}" style="font-weight:bold"/>
+
+                <h:outputText value="Sala: "/>
+                <h:outputText value="#{distribuicaoSalaBean.listaSalaCurso()}" style="font-weight:bold"/>
+            </h:panelGrid>
+        </p:dialog>
+
+    </ui:define>
+
+</ui:composition>

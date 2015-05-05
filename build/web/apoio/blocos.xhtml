@@ -1,0 +1,154 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+
+
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..." appendToBody="true"  
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+        <p:fieldset legend="Cadastro de Blocos">
+            <h:form id="formBlocos">
+                <p:growl id="aviso" life="5000"/>
+
+
+
+                <br/>
+                <br/>
+                <!-- Botão Novo -->
+                <p:commandButton value="Novo Bloco" icon="ui-icon-document"
+                                 oncomplete="inserir.show()"/>
+                <br/>
+                <br/>
+                <!-- Tabela de Exibição -->
+                <p:dataTable id="tabelaBlocos" value="#{blocosBean.blocos}"
+                             var="b" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}" 
+                             rowsPerPageTemplate="5,10,15" widgetVar="blocoTable" 
+                             emptyMessage="Não foram encontrados Blocos cadastrados">
+                    <f:facet name="header">  
+                        <h:outputText value="LISTA DE BLOCOS" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="deta" update=":detBloco" oncomplete="detalhes.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{b}" target="#{blocosBean.bloco}"/>
+                        </p:commandLink>
+                        <p:tooltip for="deta" value="Exibe o detalhamento do Bloco" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+
+                    <p:column id="clnome" sortBy="#{b.nome}" width="255"  filterBy="#{b.nome}" filterStyle="width: 100px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="NOME"/>
+                        </f:facet>
+                        <h:outputText value="#{b.nome}"/>
+                    </p:column>
+                    <p:column id="clqtdAndar" sortBy="#{b.qtdAndares}" width="165">
+                        <f:facet name="header">
+                            <h:outputText value="QUANTIDADE DE ANDARES"/>
+                        </f:facet>
+                        <center>
+                            <h:outputText value="#{b.qtdAndares}"/>
+                        </center>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="AÇÕES"/>
+                        </f:facet>
+                        <center>
+                            <p:commandButton value="Editar" oncomplete="inserir.show()" icon="ui-icon-pencil" 
+                                             update=":cadastroB">
+                                <f:setPropertyActionListener value="#{b}" target="#{blocosBean.bloco}"/>
+                            </p:commandButton>
+                            <p:commandButton value="Excluir" icon="ui-icon-trash" oncomplete="confirmation.show()">
+                                <f:setPropertyActionListener value="#{b}" target="#{blocosBean.bloco}"/>
+                            </p:commandButton>
+                        </center>
+                    </p:column>
+                </p:dataTable>
+                <br/>
+            </h:form>
+        </p:fieldset>
+
+        <!-- Caixa de Confirmação de Exclusão -->
+        <p:confirmDialog id="confirmDialog" message="Tem certeza que deseja excluir ?"  appendToBody="true"
+                         header="Confirmação de exclusão" severity="alert" widgetVar="confirmation" closable="false">  
+            <h:form>
+                <p:commandButton id="confirm" value="Sim" oncomplete="confirmation.hide()"  
+                                 action="#{blocosBean.excluir()}" update=":formBlocos:tabelaBlocos, :formBlocos:aviso">
+                </p:commandButton>  
+                <p:commandButton id="decline" value="Não" onclick="confirmation.hide()" type="button" />   
+            </h:form>
+        </p:confirmDialog>
+
+        <!-- Modal do Formulário -->
+        <p:dialog widgetVar="inserir"  resizable="false"
+                  header="Inserir Blocos" appendToBody="true"
+                  modal="true" width="600">
+            <h:form id="cadastroB">
+                <h:inputHidden value="#{blocosBean.bloco.idBlocos}"/>
+                <p:growl id="aviso2" life="5000"/>
+                <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+                    <p:outputLabel for="nome" value="Nome: "/>
+                    <p:inputText id="nome" required="true" value="#{blocosBean.bloco.nome}" label="Nome" size="50"
+                                 requiredMessage="O campo 'Nome' é obrigatório"
+                                 validatorMessage="O campo 'Nome' deve começar por letra">
+                        <f:validateRegex pattern="(([a-zA-ZÀ-ú ]+)||([a-zA-ZÀ-ú ]+)([0-9 ]+))"/>
+                    </p:inputText>
+                    <p:message id="msgNome" for="nome" display="icon"/>
+
+                    <p:outputLabel for="qtdAndares" value="Quantidade de Pisos: "/>
+                    <p:inputText id="qtdAndares" type="number" required="true" value="#{blocosBean.bloco.qtdAndares}" label="Quantidade de Pisos" 
+                                 onkeypress="return SomenteNumero(event)" requiredMessage="O campo 'Quantidade de Pisos' é obrigatório"
+                                 size="10" maxlength="20" converterMessage="Digite apenas número na Quantidade de Pisos!">
+                        <f:convertNumber integerOnly="true"/> 
+                        <f:validateLength minimum="1" /> 
+                    </p:inputText>
+                    <p:message id="msgQtd" for="qtdAndares" display="icon"/>
+
+                    <p:outputLabel for="sub" value="Tem subsolo ?"/>
+                    <p:selectBooleanCheckbox id="sub" value="#{blocosBean.bloco.subsolo}"/>
+                </h:panelGrid>
+                <br />
+                <div style="float: left; font-size: 11px; font-weight:bold;">
+                    * Campos obrigatórios
+                </div>
+                <div style="float: right">
+                    <p:commandButton update=":formBlocos:tabelaBlocos, :formBlocos:aviso, cadastroB" value="Salvar" icon="ui-icon-disk" action="#{blocosBean.salvar}"/>
+                    <p:commandButton update="cadastroB" value="Limpar" action="#{blocosBean.limpar()}" immediate="true" process="@this"/>
+                </div>
+            </h:form>
+            <p:ajax event="close" update="cadastroB" listener="#{blocosBean.limpar()}"/>
+        </p:dialog>
+
+        <!-- Detalhamento do Bloco -->
+        <p:dialog id="det" widgetVar="detalhes" header="Detalhamento do Bloco" width="460" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+
+            <h:panelGrid id="detBloco" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Nome: "/>
+                <h:outputText value="#{blocosBean.bloco.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Quantidade de Pisos: "/>
+                <h:outputText value="#{blocosBean.bloco.qtdAndares}" style="font-weight:bold"/>
+                
+                <h:outputText value="Tem subsolo ? "/>
+                <h:outputText value="Sim" rendered="#{blocosBean.bloco.subsolo eq true}" style="font-weight:bold"/>
+                <h:outputText value="Não" rendered="#{blocosBean.bloco.subsolo eq false}" style="font-weight:bold"/>
+            </h:panelGrid>
+        </p:dialog>
+    </ui:define>
+
+</ui:composition>

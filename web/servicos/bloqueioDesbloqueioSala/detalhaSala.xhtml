@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="./../../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+        <f:metadata>  
+            <f:event type="preRenderView" listener="#{bloqueiaDesbloqueiaSalaBean.verificaSituacao()}"/>  
+        </f:metadata>
+        <p:fieldset legend="Detalhamento da Sala">
+            <p:graphicImage id="ac" alt="Acessibilidade" style="border: none; float: right;" 
+                            value="/resources/imgs/acs.png" rendered="#{bloqueiaDesbloqueiaSalaBean.sala.andar eq 'Térreo' || bloqueiaDesbloqueiaSalaBean.sala.andar eq 'Subsolo'}"/>
+            <p:tooltip for="ac" value="Sala com Acessibilidade" showEffect="fade" hideEffect="fade"/>
+            <h:form id="detaSala">
+                <p:growl id="aviso" life="5000"/>
+                <h:panelGrid id="detSala" columns="2" cellpadding="4" cellspacing="10">
+
+                    <h:outputText value="Número: "/>
+                    <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.numero}" style="font-weight:bold"/>
+
+                    <h:outputText value="Capacidade: "/>
+                    <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.capacidade}" style="font-weight:bold"/>
+
+                    <h:outputText value="Situação: "/>
+                    <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.situacao}" style="font-weight:bold; color: green" rendered="#{bloqueiaDesbloqueiaSalaBean.sala.situacao eq 'Liberada'}"/>
+                    <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.situacao}" style="font-weight:bold; color: darkred" rendered="#{bloqueiaDesbloqueiaSalaBean.sala.situacao eq 'Bloqueada'}"/>
+
+                    <h:outputText value="Observação da Sala: " />
+                    <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.obsSituacao}" style="font-weight:bold; color: darkred"/>
+
+                    <h:outputText value="Bloco: "/>
+                    <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.bloco.nome}" style="font-weight:bold"/>
+
+                    <h:outputText value="Andar: "/>
+                    <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.andar}" style="font-weight:bold"/>
+
+                </h:panelGrid>
+                <fieldset style="border: 1px solid #77D5F7; padding: 3px; width: 450px;">
+                    <legend style="padding: 6px; font-weight: bold;">Cadeira</legend>
+                    <p>
+                        <h:panelGrid id="detSalaCadeira" columns="2" cellpadding="4" cellspacing="10">
+                            <h:outputText value="Tipo de Cadeira: "/>
+                            <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.cadeira.descricao}" style="font-weight:bold"/>
+
+                            <h:outputText value="Propriedade da Cadeira: "/>
+                            <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.cadeira.proprietario}" style="font-weight:bold"/>
+
+                            <h:outputText value="Tamanho da Cadeira: "/>
+                            <h:outputText value="#{bloqueiaDesbloqueiaSalaBean.sala.tamanhoCad}" style="font-weight:bold"/>
+                        </h:panelGrid>
+                    </p>
+                </fieldset>
+                <br />
+                <p:dataTable id="tabelaEquipSala" value="#{bloqueiaDesbloqueiaSalaBean.eqsDaSala}" 
+                             var="e" rows="5" paginator="true" paginatorPosition="bottom" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"
+                             emptyMessage="Não há equipamentos nesta sala" >
+
+                    <f:facet name="header">
+                        <h:outputText value="Lista de Equipamentos da Sala"/>
+                    </f:facet>
+
+                    <p:column width="150">
+                        <f:facet name="header">
+                            <h:outputText value="Equipamento"/>
+                        </f:facet>
+                        #{e.equipamento.nome}
+                    </p:column>
+                    <p:column width="70">
+                        <f:facet name="header">
+                            <h:outputText value="Quantidade"/>
+                        </f:facet>
+                        <center>
+                            #{e.qtd}
+                        </center>
+                    </p:column>
+                    <p:column width="100">
+                        <f:facet name="header">
+                            <h:outputText value="Situação"/>
+                        </f:facet>
+                        #{e.situacao}
+                    </p:column>
+                    <p:column width="180">
+                        <f:facet name="header">
+                            <h:outputText value="Observação da Situação"/>
+                        </f:facet>
+                        #{e.obsSituacaoE}
+                    </p:column>
+                </p:dataTable>
+                <br />
+                <div style="float: right">
+                    <p:commandButton value="Bloquear Sala" rendered="#{bloqueiaDesbloqueiaSalaBean.bloqueia}" oncomplete="bloqueio.show()"/>
+                    <p:commandButton value="Desbloquear Sala" rendered="#{bloqueiaDesbloqueiaSalaBean.desbloqueia}" ajax="false" action="#{bloqueiaDesbloqueiaSalaBean.salvaDesbloqueio()}" immediate="true"/>
+                    <p:commandButton value="Cancelar" ajax="false" action="/servicos/bloqueioDesbloqueioSala/index.xhtml"/>
+                </div>
+            </h:form>
+        </p:fieldset>
+
+        <p:dialog widgetVar="bloqueio"
+                  header="Bloquear da Sala" appendToBody="true"
+                  modal="true" width="600">
+            <h:form id="cadastroS">
+                <p:growl id="aviso2" life="5000"/>
+                <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+
+                    <p:outputLabel id="labObs" for="obsSitS" value="Motivo do Bloqueio: " />
+                    <h:panelGroup>
+                        <p:inputTextarea id="obsSitS" required="true"
+                                         rows="5" cols="50" value="#{bloqueiaDesbloqueiaSalaBean.sala.obsSituacao}" label="Observação da Sala"
+                                         counter="counter" maxlength="250" counterTemplate="{0} caracteres restantes" autoResize="false"
+                                         requiredMessage="O campo 'Observação da Sala' é obrigatório">
+                        </p:inputTextarea>
+                        <br/>
+                        <h:outputText id="counter"/>
+                    </h:panelGroup>
+                    <p:message id="msgobsSitS" for="obsSitS" display="icon"/>
+
+                </h:panelGrid>
+                <br />
+                <div style="float: left; font-size: 11px; font-weight:bold;">
+                    * Campos obrigatórios
+                </div>
+                <div style="float: right">
+                    <p:commandButton update=":detaSala, :detaSala:detSala, :growlMsg:aviso, cadastroS" value="Confirmar" icon="ui-icon-disk" action="#{bloqueiaDesbloqueiaSalaBean.salvaBloqueio()}" oncomplete="bloqueio.hide()"/>
+                </div>
+            </h:form>
+        </p:dialog>
+
+    </ui:define>
+
+</ui:composition>

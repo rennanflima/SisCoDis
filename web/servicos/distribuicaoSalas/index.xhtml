@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="./../../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..." appendToBody="true"   
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <h:form id="formTurmas">
+            <p:growl id="aviso" life="5000"/>
+
+            <p:fieldset legend="Distribuição de Salas">
+                <br/>
+                <br />
+                <p:panel style="width: 500px;">
+                    <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+                        <p:outputLabel value="Instituição: " for="insti"/>
+                        <p:selectOneMenu id="insti" required="true" value="#{distribuicaoSalaBean.idInstituicoes}" 
+                                         immediate="true" requiredMessage="O campo 'Instituição' é obrigatório">
+                            <f:selectItem itemLabel="Selecione uma Instituição..." itemValue="" /> 
+                            <f:selectItems value="#{instituicoesBean.instituicoes}" var="i"
+                                           itemLabel="#{i.sigla}" itemValue="#{i.idInstituicoes}" />
+                            <p:ajax update="curso"/>
+                        </p:selectOneMenu>
+                        <p:message id="msgInsti" for="insti" display="icon"/>
+
+
+                        <p:outputLabel value="Curso: " for="curso"/>
+                        <p:autoComplete id="curso" required="true" value="#{distribuicaoSalaBean.curso}" completeMethod="#{distribuicaoSalaBean.completeCursos}"
+                                        converter="cursoConverter" var="curso" itemLabel="#{curso.nome}" size="50"
+                                        disabled="#{(distribuicaoSalaBean.idInstituicoes == null) ? true : false}"
+                                        itemValue="#{curso}" forceSelection="true"  immediate="true" requiredMessage="O campo 'Curso' é obrigatório"
+                                        maxResults="5" effect="blind">
+                            <p:column>
+                                #{curso.nome}<p:spacer width="5" height="0"/>#{localizarTurmaSalaBean.listaTurnosCurso(curso)}<p:spacer width="10" height="0"/> - <p:spacer width="10" height="0"/>#{curso.codigo}
+                            </p:column>
+                        </p:autoComplete>
+                        <p:message id="msgCurso" for="curso" display="icon"/>
+                    </h:panelGrid>
+                    <br />
+                    <div style="float: left; font-size: 11px; font-weight:bold;">
+                        * Campos obrigatórios
+                    </div>
+                    <div style="text-align: right">
+                        <p:commandButton value="Carregar" update="tabelaTurmas" action="#{distribuicaoSalaBean.carregaListaPrincipal()}"/>
+                        <p:commandButton value="Limpar" update="curso, insti, tabelaTurmas" action="#{distribuicaoSalaBean.limpaAutoComplete()}" immediate="true" process="@this"/>
+                    </div>
+                </p:panel>
+                <br/>
+                <br/>
+                <!-- Tabela de Exibição -->
+                <p:dataTable id="tabelaTurmas" value="#{distribuicaoSalaBean.turmas}" style="width: 766px"
+                             var="tm" rows="10" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}" 
+                             rowsPerPageTemplate="5,10,15" widgetVar="turmTable" 
+                             emptyMessage="Não foram encontrados Turmas cadastrados">
+
+                    <f:facet name="header">  
+                        <h:outputText value="LISTA DE TURMAS" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="deta" update=":detTurma" oncomplete="detalhes.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{tm}" target="#{distribuicaoSalaBean.turma}"/>
+                        </p:commandLink>
+                        <p:tooltip for="deta" value="Exibe o detalhamento da Turma" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+
+                    <p:column sortBy="#{tm.curso.nome}" width="190">
+                        <f:facet name="header">
+                            <h:outputText value="CURSO"/>
+                        </f:facet>
+                        #{tm.curso.nome}
+                    </p:column>
+                    <p:column sortBy="#{tm.codigo}">
+                        <f:facet name="header">
+                            <h:outputText value="CÓDIGO"/>
+                        </f:facet>
+                        <center>
+                            #{tm.codigo}
+                        </center>
+                    </p:column>
+                    <p:column sortBy="#{tm.periodo}">
+                        <f:facet name="header">
+                            <h:outputText value="PERÍODO"/>
+                        </f:facet>
+                        <center>
+                            #{tm.periodo.periodo}
+                        </center>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="QTD ALUNOS"/>
+                        </f:facet>
+                        <center>
+                            #{tm.qtdAlunos}
+                        </center>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="SALA"/>
+                        </f:facet>
+                        <center>
+                            #{tm.sala.numero}
+                        </center>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="BLOCO"/>
+                        </f:facet>
+                        <center>
+                            #{tm.sala.bloco.nome}
+                        </center>
+                    </p:column>
+                    <p:column width="120">
+                        <f:facet name="header">
+                            <h:outputText value="AÇÕES"/>
+                        </f:facet>
+                        <center>
+                            <p:commandButton value="Localizar Sala" action="#{distribuicaoSalaBean.mudaDetalhaTurma()}">
+                                <f:setPropertyActionListener value="#{tm}" target="#{distribuicaoSalaBean.turma}"/>
+                            </p:commandButton>
+                        </center>
+                    </p:column>
+                </p:dataTable>
+                <br />
+            </p:fieldset>
+        </h:form>
+
+        <!-- Detalhamento da Turma -->
+        <p:dialog id="det" widgetVar="detalhes" header="Detalhamento da Turma" width="500" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+
+            <h:panelGrid id="detTurma" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Curso: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turma.curso.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Instituição: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turma.curso.instituicao.sigla}" style="font-weight:bold"/>
+
+                <h:outputText value="Código: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turma.codigo}" style="font-weight:bold"/>
+
+                <h:outputText value="Período: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turma.periodo.periodo}" style="font-weight:bold"/>
+
+                <h:outputText value="Quantidade de Alunos: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turma.qtdAlunos}" style="font-weight:bold"/>
+
+                <h:outputText value="Status: "/>
+                <h:outputText value="#{distribuicaoSalaBean.turma.status}" style="font-weight:bold; color: green" rendered="#{distribuicaoSalaBean.turma.status eq 'Cursando'}"/>
+                <h:outputText value="#{distribuicaoSalaBean.turma.status}" style="font-weight:bold; color: darkred" rendered="#{distribuicaoSalaBean.turma.status eq 'Formada'}"/>
+
+                <h:outputText value="Turno(s): "/>
+                <h:outputText value="#{distribuicaoSalaBean.listaTurnos()}" style="font-weight:bold"/>
+
+                <h:outputText value="Sala: "/>
+                <h:outputText value="#{distribuicaoSalaBean.listaSala()}" style="font-weight:bold"/>
+            </h:panelGrid>
+        </p:dialog>
+
+    </ui:define>
+</ui:composition>

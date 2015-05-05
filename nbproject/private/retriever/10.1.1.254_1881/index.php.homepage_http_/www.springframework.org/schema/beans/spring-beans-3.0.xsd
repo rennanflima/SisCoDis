@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+	<title>TMSoft MyAuth Gateway 3 - 06/11/2012 12:53:08</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<link rel="stylesheet" type="text/css" href="/src/css/theme_hotspot.css">
+	<script language="JavaScript" src="/src/js/md5.js" type="text/javascript"></script>
+	<script language="JavaScript" src="/src/js/hidden.js" type="text/javascript"></script>
+	<script language="JavaScript" src="/src/js/vbl.js" type="text/javascript"></script>
+	<script language="JavaScript">
+	function selectform() {
+		document.frmlogin.username.select();
+		document.frmlogin.username.focus();
+	}
+	</script>
+
+</head>
+
+<body bottomMargin='0' leftMargin='0' topMargin='0' rightMargin='0' onLoad="selectform();">
+	<form name="cryptform" action="?nocache=1352220788&myauth3" method="post">
+		<input type="hidden" name="username">
+		<input type="hidden" name="password">
+		<input type="hidden" name="action" value="auth">
+		<input type="hidden" name="authtype" value="plain">
+		<input type="hidden" name="popup" value="true">
+		<input type="hidden" name="save" value="0">
+	</form>
+	<script type="text/javascript">
+	<!--
+
+	var JS_CRYPT = "1";
+	var CHALLENGE = "1454465264";
+
+	function sendLogin() {
+		var user = Trim(document.frmlogin.username.value);
+		var pass = Trim(document.frmlogin.password.value);
+		var save = 0;
+		
+		if(user == ''){
+			alert("Informe o nome de usuário!");
+			document.frmlogin.username.select();
+			document.frmlogin.username.focus();
+			return false;
+		}
+		if(pass == ''){
+			alert("Informe a senha!");
+			document.frmlogin.password.select();
+			document.frmlogin.password.focus();
+			return false;
+		}
+		document.cryptform.username.value = user;
+		document.cryptform.save.value = save;
+		// enviar
+		if(JS_CRYPT == "2"){
+			// criptografia de 1 via, criptografar senha com senha gerada pelo servidor
+			document.cryptform.authtype.value = 'chap';
+			document.cryptform.password.value = hex_md5(pass + CHALLENGE);
+			document.cryptform.submit();
+		}else if(JS_CRYPT == "1"){
+			// criptografia de 2 vias, senha de criptografia
+			// temporaria gerada pelo servidor baseado no numero de segundos desde 1970
+			document.cryptform.authtype.value = 'hidden';
+			document.cryptform.password.value = hidden_crypt(pass, CHALLENGE);
+			document.cryptform.submit();
+		}else{
+			// nao criptografar, confiar na rede ou no SSL
+			document.cryptform.authtype.value = 'plain';
+			document.cryptform.password.value = pass;
+			document.cryptform.submit();
+		}
+		return false;
+	}
+
+	//-->
+	</script>
+	<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+		<tr>
+			<td align="center" valign="middle">
+<!-- mensagem global -->
+<br>
+<!-- espaco para avisos -->
+
+
+<!-- fim espaco avisos -->
+
+			<TABLE width=350 border=0 align="center" cellPadding=0 cellSpacing=0 borderColor=#111111 bgColor=#f1f8fd id=table3 style="BORDER-COLLAPSE: collapse">
+	<TR>
+		<TD width="100%" colSpan=3 height="1%">
+			<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+				<TR>
+					<TD width=1><IMG height=36 src="/src/images/top_left_corner.gif" width=22 border=0></TD>
+					<TD background="/src/images/top_menu_bg.gif"><FONT class=menuheadermain>Acessar
+									internet</FONT></TD>
+					<TD width=1><a href="/index.php?homepage=http%3A%2F%2Fwww.springframework.org%2Fschema%2Fbeans%2Fspring-beans-3.0.xsd"><IMG height=36 src="/src/images/top_right_corner.gif" width=32 border=0></a></TD>
+				</TR>
+			</TABLE>
+		</TD>
+	</TR>
+	<TR>
+		<TD width="100%" colSpan=3 height="1%">
+			<DIV align=center>
+					<TABLE id=table5 cellSpacing=0 cellPadding=0 width="100%" background="/src/images/mid_bg.gif" border=0>
+						<TR>
+							<TD width="50%"><IMG height=3 src="/src/images/top_left_mid.gif" width=22 border=0></TD>
+							<TD width="50%"><P align=right><IMG height=3 src="/src/images/top_right_mid.gif" width=32 border=0></P></TD>
+						</TR>
+					</TABLE>
+			</DIV>
+		  </TD>
+		</TR>
+	<TR>
+		<TD vAlign=top width=10 background="/src/images/left_bg.gif"><IMG height=1 src="/src/images/left_bg.gif" width=10 border=0></TD>
+		<TD vAlign=top width="100%" bgColor=#ffffff>
+
+
+<table width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+<form name='frmlogin' method='post' action='?nocache=1352220788&myauth3' onSubmit="return sendLogin();">
+		<input type="hidden" name="action" value="auth">
+		<input type="hidden" name="authtype" value="plain">
+		<tr>
+				<td width="101" align="center" valign="top"><table width="250" border="0" cellpadding="0" cellspacing="3">
+                  <tr>
+                    <td height="20" colspan="2" align="center"><strong><FONT class=menuheadermain>Autentica&ccedil;&atilde;o necess&aacute;ria, informe:</FONT></strong></td>
+                  </tr>
+                  <tr>
+                    <td height="15" colspan="2"></td>
+                  </tr>
+                  <tr>
+                    <td width="117" height="20" align="right"><FONT class=menuheadermain>Usuário:</FONT>&nbsp;</td>
+                    <td width="124"><input name="username" type="text" id="username" value="" size="20" maxlength="60">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td height="20" align="right"><FONT class=menuheadermain>Senha:</FONT>&nbsp;</td>
+                    <td><input name="password" type="password" id="password" size="20" maxlength="40">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td height="20" align="right">&nbsp;</td>
+                    <td><input type="submit" value="Entrar">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td height="20" colspan="2" align="right">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">
+<!-- menu -->
+
+                          <table border="0" width="100%" cellpadding="0" cellspacing="0">
+                            <tr> 
+                              <td width="20%" height="23" align="center"><a href="?console=panel"><img src="/src/icons/suport32.gif" hspace="5" vspace="5" border="0"></a></td>
+                              <td width="80%"><a href="?console=panel">Painel 
+                                de controle</a></td>
+                            </tr>
+                            <tr>
+                              <td height="23" align="center"><a href="?console=info"><img src="/src/icons/skypechat32.gif" hspace="5" vspace="5" border="0"></a></td>
+                              <td><a href="?console=info">Informa&ccedil;&otilde;es</a></td>
+                            </tr>
+                          </table>
+<!-- fim menu -->
+					</td>
+                  </tr>
+                </table></td>
+		        <td colspan="2" align="center" valign="top"><img src="/src/images/notebook256.jpg" alt="MyAuth Gateway 3 - www.myauth.com.br" width="256" height="256" hspace="10" border="0"></td>
+        </tr>
+</form>
+<!-- fim form -->
+</table>
+
+
+		</TD>
+		<TD vAlign=top width=10 background="/src/images/right_bg.gif"><IMG height=1 src="/src/images/right_bg.gif" width=10 border=0></TD>
+	</TR>
+	<TR>
+		<TD width="100%" colSpan=3 height="1%">
+				<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+					<TR>
+						<TD width="50%" align="left" background="/src/images/bottom_mid_bg.gif"><IMG height=23 src="/src/images/bottom_left_corner.gif" width=22 border=0></TD>
+						<TD width="50%" align="right" background="/src/images/bottom_mid_bg.gif"><IMG height=23 src="/src/images/bottom_right_corner.gif" width=19 border=0></TD>
+					</TR>
+			  </TABLE>
+		</TD>
+	</TR>
+	<TR>
+		<TD colSpan=3 height="15" align="right"><a target="_blank" href="http://www.myauth.com.br/">MyAuth Gateway 3</a>&nbsp;&nbsp;&nbsp;</td>
+	</tr>
+</TABLE>
+		  </td>
+		</tr>
+	</table>
+
+</body>
+</html>

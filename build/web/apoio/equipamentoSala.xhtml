@@ -1,0 +1,227 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="./../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..." appendToBody="true"  
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <p:fieldset legend="Adicionar Equipamento a Sala">
+            <h:form id="formEqSala">
+                <p:growl id="aviso" life="5000"/>
+                <br/>
+                <br/>
+                <p:panel style="width: 500px; height: 100px;">
+                    <h:panelGrid id="filtro" columns="2" cellpadding="4" cellspacing="10">
+                        <p:outputLabel for="idsala" value="Sala: "/>
+                        <p:autoComplete id="idsala" required="true" value="#{equipamentoDaSalaBean.sala}" completeMethod="#{equipamentoDaSalaBean.completeSalas}"
+                                        converter="salaConverter" var="sala" itemLabel="#{sala.numero}"
+                                        itemValue="#{sala}" forceSelection="true"  immediate="true" requiredMessage="O campo 'Sala' é obrigatório"
+                                        maxResults="5" effect="blind"/>
+
+                    </h:panelGrid>
+                    <br/>
+                    <div style="float: left; font-size: 11px; font-weight:bold;">
+                        * Campos obrigatórios
+                    </div>
+                    <div style="float: right">
+                        <p:commandButton value="Localizar" update="tabelaEquipSala, aviso, novo" action="#{equipamentoDaSalaBean.carregaLista()}"/>
+                        <!-- Botão Novo -->
+                        <p:commandButton id="novo" value="Adicionar" icon="ui-icon-document" oncomplete="inserirEquipamento.show()" 
+                                         disabled="#{equipamentoDaSalaBean.verificaLista()}"/>
+                        <!-- Botão Cancelar -->
+                        <p:commandButton value="Cancelar" update="idsala, tabelaEquipSala, aviso, novo" action="#{equipamentoDaSalaBean.limparLista()}"/>
+                    </div>
+                </p:panel>
+                <div style="float: right;">
+                    <h:panelGrid columns="4" cellpadding="4" cellspacing="10">
+                        <h:graphicImage alt="Funcionando" library="imgs" name="ativado.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px" value="Equipamento funcionando"/>
+                        <h:graphicImage alt="Com Defeito" library="imgs" name="desativado.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px" value="Equipamento com defeito"/>
+                    </h:panelGrid>
+                </div>
+                <br/>
+                <br/>
+                <!-- Tabela de Exibição de Equipamentos da Sala -->
+                <p:dataTable id="tabelaEquipSala" value="#{equipamentoDaSalaBean.eqSalas}" 
+                             var="e" rows="5" paginator="true" paginatorPosition="bottom" 
+                             currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"
+                             emptyMessage="Não foram encontrados Equipamentos nesta Sala">
+
+                    <f:facet name="header">
+                        <h:outputText value="Lista de Equipamentos da Sala"/>
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="deta" update=":detEqS" oncomplete="detalhes.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{e}" target="#{equipamentoDaSalaBean.eqSala}"/>
+                        </p:commandLink>
+                        <p:tooltip for="deta" value="Exibe o detalhamento do Equipamento da Sala" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+
+                    <p:column width="150" sortBy="#{e.equipamento.nome}"  filterBy="#{e.equipamento.nome}" filterStyle="width: 100px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="EQUIPAMENTO"/>
+                        </f:facet>
+                        #{e.equipamento.nome}
+                    </p:column>
+                    <p:column width="70" sortBy="#{e.qtd}">
+                        <f:facet name="header">
+                            <h:outputText value="QUANTIDADE"/>
+                        </f:facet>
+                        <center>
+                            #{e.qtd}
+                        </center>
+                    </p:column>
+                    <p:column width="100" sortBy="#{e.situacao}">
+                        <f:facet name="header">
+                            <h:outputText value="SITUAÇÃO"/>
+                        </f:facet>
+                        <center>
+                            <h:graphicImage alt="Funcionando" value="/resources/imgs/ativado.png" rendered="#{e.situacao eq 'Funcionando'}"/>
+                            <h:graphicImage alt="Com Defeito" value="/resources/imgs/desativado.png" rendered="#{e.situacao eq 'Defeito'}"/>
+                        </center>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="AÇÕES"/>
+                        </f:facet>
+                        <center>
+                            <p:commandButton value="Editar" oncomplete="inserirEquipamento.show()" icon="ui-icon-pencil"
+                                             update=":cadastroE">
+                                <f:setPropertyActionListener value="#{e}" target="#{equipamentoDaSalaBean.eqSala}"/>
+                            </p:commandButton>
+                            <p:commandButton value="Excluir" icon="ui-icon-trash" oncomplete="confirmation.show()" 
+                                             update=":formEqSala">
+                                <f:setPropertyActionListener value="#{e}" target="#{equipamentoDaSalaBean.eqSala}"/>
+                            </p:commandButton>
+                        </center>
+                    </p:column>
+                </p:dataTable>
+                <br />
+            </h:form>
+        </p:fieldset>
+        <br />
+
+        <!-- Caixa de Confirmação de Exclusão -->
+        <p:confirmDialog id="confirmDialog" message="Tem certeza que deseja remover ?"  appendToBody="true"
+                         header="Confirmação de exclusão" severity="alert" widgetVar="confirmation" closable="false">  
+            <h:form>
+                <p:commandButton id="confirm" value="Sim" oncomplete="confirmation.hide()"  
+                                 action="#{equipamentoDaSalaBean.excluir()}" update=":formEqSala:tabelaEquipSala, :formEqSala:aviso">
+                </p:commandButton>  
+                <p:commandButton id="decline" value="Não" onclick="confirmation.hide()" type="button" />   
+            </h:form>
+        </p:confirmDialog>
+
+        <!-- Modal do Formulário de Equipamentos da Sala -->
+        <p:dialog widgetVar="inserirEquipamento" resizable="false"
+                  header="Inserir Equipamentos" appendToBody="true"
+                  modal="true" width="570">
+            <h:form id="cadastroE">
+                <h:inputHidden value="#{equipamentoDaSalaBean.eqSala.idEquipamentoDaSala}"/>
+                <p:growl id="aviso3" life="5000"/>
+                <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+                    <p:outputLabel for="cbEqS" value="Equipamento: "/>
+                    <p:selectOneMenu id="cbEqS" required="true" value="#{equipamentoDaSalaBean.idEquipamento}"
+                                     immediate="true" label="Equipamento" requiredMessage="O campo 'Equipamento' é obrigatório">
+                        <f:selectItem itemLabel="Selecione um Equipamento..." itemValue="" /> 
+                        <f:selectItems value="#{equipamentosBean.equipamentos}" var="qes"
+                                       itemLabel="#{qes.nome}" itemValue="#{qes.idEquipamentos}" />
+                    </p:selectOneMenu>
+                    <p:message id="msgCbEqs" for="cbEqS" display="icon"/>
+
+                    <p:outputLabel for="qtdE" value="Quantidade: "/>
+                    <p:inputText id="qtdE" value="#{equipamentoDaSalaBean.eqSala.qtd}" required="true" label="Quantidade" size="10" maxlength="20"
+                                 onkeypress="return SomenteNumero(event)" requiredMessage="O campo 'Quantidade' é obrigatório"
+                                 converterMessage="Digite apenas número na Quantidade!">
+                        <f:convertNumber integerOnly="true"/>
+                    </p:inputText>
+                    <p:message id="msgQtdE" for="qtdE" display="icon"/>
+
+                    <p:outputLabel for="sitE" value="Situação: "/>
+                    <p:selectOneRadio id="sitE" required="true" value="#{equipamentoDaSalaBean.eqSala.situacao}" label="Situação"
+                                      immediate="true" requiredMessage="O campo 'Situação' é obrigatório">
+                        <f:selectItem itemLabel="Funcionando" itemValue="Funcionando" />
+                        <f:selectItem itemLabel="Com Defeito" itemValue="Defeito" />
+                        <p:ajax event="change" update="osLabE, osE"/>
+                    </p:selectOneRadio>
+                    <p:message id="msgSitE" for="sitE" display="icon"/>
+
+                    <h:panelGrid id="osLabE">
+                        <p:outputLabel for="obsSitE" value="Observação do Equipamento: " rendered="#{equipamentoDaSalaBean.eqSala.situacao eq 'Defeito'}"/>
+                    </h:panelGrid>
+
+                    <h:panelGrid id="osE">
+                        <h:panelGroup>
+                            <p:inputTextarea id="obsSitE" rendered="#{equipamentoDaSalaBean.eqSala.situacao eq 'Defeito'}" required="#{equipamentoDaSalaBean.eqSala.situacao eq 'Defeito'}"
+                                             rows="5" cols="50" value="#{equipamentoDaSalaBean.eqSala.obsSituacaoE}" label="Observação do Equipamento"
+                                             counter="counter" maxlength="250" counterTemplate="{0} caracteres restantes" autoResize="false"/>
+                            <br />
+                            <h:outputText id="counter"/>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                    <p:message id="msgobsSitE" for="obsSitE" display="icon"/>
+
+                    <p:outputLabel for="descricao" value="Descrição: "/>
+                    <h:panelGroup>
+                        <p:inputTextarea id="descricao" rows="5" cols="50" value="#{equipamentoDaSalaBean.eqSala.descricao}" label="Descrição"
+                                         counter="counter2" maxlength="250" counterTemplate="{0} caracteres restantes" autoResize="false"/>
+                        <br />
+                        <h:outputText id="counter2"/>
+                    </h:panelGroup>
+
+                </h:panelGrid>
+                <br />
+                <div style="float: left; font-size: 11px; font-weight:bold;">
+                    * Campos obrigatórios
+                </div>
+                <div style="float: right">
+                    <p:commandButton update=":formEqSala:tabelaEquipSala, cadastroE, :formEqSala:aviso" value="Confirmar" 
+                                     icon="ui-icon-disk" action="#{equipamentoDaSalaBean.salvar()}"/>
+                </div>
+            </h:form>
+            <p:ajax event="close" update="cadastroE" listener="#{equipamentoDaSalaBean.limpar()}"/>
+        </p:dialog>
+
+        <!-- Detalhamento do Equipamento da Sala -->
+        <p:dialog id="det" widgetVar="detalhes" header="Detalhamento do Equipamento da Sala" width="400" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+
+            <h:panelGrid id="detEqS" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Sala/Bloco: "/>
+                <h:outputText value="#{equipamentoDaSalaBean.eqSala.sala.numero} (#{equipamentoDaSalaBean.eqSala.sala.bloco.nome})" style="font-weight:bold"/>
+
+                <h:outputText value="Equipamento: "/>
+                <h:outputText value="#{equipamentoDaSalaBean.eqSala.equipamento.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Quantidade: "/>
+                <h:outputText value="#{equipamentoDaSalaBean.eqSala.qtd}" style="font-weight:bold"/>
+
+                <h:outputText value="Situação: "/>
+                <h:outputText value="#{equipamentoDaSalaBean.eqSala.situacao}" style="font-weight:bold; color: green" rendered="#{equipamentoDaSalaBean.eqSala.situacao eq 'Funcionando'}"/>
+                <h:outputText value="#{equipamentoDaSalaBean.eqSala.situacao}" style="font-weight:bold; color: darkred" rendered="#{equipamentoDaSalaBean.eqSala.situacao eq 'Defeito'}"/>
+
+                <h:outputText value="Observação do Equipamento: "/>
+                <h:outputText value="#{equipamentoDaSalaBean.eqSala.obsSituacaoE}" style="font-weight:bold; color: darkred"/>
+
+                <h:outputText value="Decrição: "/>
+                <h:outputText value="#{equipamentoDaSalaBean.eqSala.descricao}" style="font-weight:bold"/>
+            </h:panelGrid>
+        </p:dialog>
+    </ui:define>
+
+</ui:composition>

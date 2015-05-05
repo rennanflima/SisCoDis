@@ -1,0 +1,211 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="/templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+        <center>
+            <h:outputText value="Bem vindo, ao SISCODIS! Você está autenticado como Administrador." style="font-size: 16px; font-weight:bold; font-weight: bolder;"/>
+        </center>
+        <br/>
+        <br/>
+        <h:form>
+            <p:fieldset legend="Aviso">
+                <h:graphicImage alt="OK" library="imgs" name="ok.png" rendered="#{empty homeBean.salas}"/>
+                <h:graphicImage alt="Aviso" library="imgs" name="aviso.png" rendered="#{!empty homeBean.salas}"/>
+                <div style="float: right;">
+                    <br /> 
+                    <h:panelGrid columns="4" cellpadding="4" cellspacing="10" rendered="#{!empty homeBean.salas}">
+                        <h:graphicImage alt="Liberada" library="imgs" name="ativado.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px;" value="Sala liberada"/>
+                        <h:graphicImage alt="Alerta" library="imgs" name="alerta.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px;" value="Sala com equipamento(s) defeituoso(s)"/>
+                        <h:graphicImage alt="Bloqueada" library="imgs" name="desativado.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px;" value="Sala bloqueada"/>
+                        <p:graphicImage alt="Acessibilidade" style="border: none" value="/resources/imgs/acs.png" />
+                        <h:outputText style="font-style: italic; font-size: 11px;" value="Sala com Acessibilidade"/>
+                    </h:panelGrid>
+                </div>
+                <br />
+                <br />
+                <p:dataTable id="salasEqDefeituoso" value="#{homeBean.salas}" var="s" rows="5" paginator="true" paginatorPosition="bottom"
+                             style="max-width: 970px;"
+                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"
+                             emptyMessage="Não há salas com equipamentos defeituosos">
+
+                    <f:facet name="header">  
+                        <h:outputText value="SALAS COM EQUIPAMENTO(S) DEFEITUOSO(S)" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="detaS" update=":detSala, :detSalaCadeira, :tabelaEquipSala, :detS" oncomplete="detalhaSala.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{s}" target="#{homeBean.sala}"/>
+                        </p:commandLink>
+                        <p:tooltip for="detaS" value="Exibe o detalhamento da Sala" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="NÚMERO DA SALA"/>
+                        </f:facet>
+                        #{s.numero}
+                        <p:graphicImage id="ac" alt="Acessibilidade" style="border: none" value="/resources/imgs/acs.png" rendered="#{s.andar eq 'Térreo' || s.andar eq 'Subsolo'}"/>
+                        <p:tooltip for="ac" value="Sala com Acessibilidade" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+                    <p:column width="90">
+                        <f:facet name="header">
+                            <h:outputText value="CAPACIDADE"/>
+                        </f:facet>
+                        <center>
+                            #{s.capacidade}
+                        </center>
+                    </p:column>
+                    <p:column width="80">
+                        <f:facet name="header">
+                            <h:outputText value="SITUAÇÃO"/>
+                        </f:facet>
+                        <center>
+                            <h:graphicImage library="imgs" name="#{homeBean.verificaStatus(s)}"/>
+                        </center>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="BLOCO"/>
+                        </f:facet>
+                        #{s.bloco.nome}
+                    </p:column>
+                    <p:column width="70">
+                        <f:facet name="header">
+                            <h:outputText value="ANDAR"/>
+                        </f:facet>
+                        <center>
+                            #{s.andar}
+                        </center>
+                    </p:column>
+                </p:dataTable>
+            </p:fieldset>
+        </h:form>
+
+        <!-- Informaçoes -->
+        <br/>
+        <p:fieldset legend="Informações" style="float: left; width: 300px;">
+            <h:panelGrid columns="2" cellpadding="4" cellspacing="10">
+                <h:outputText value="Turmas no 1º Período: "/>
+                <h:outputText value="#{homeBean.turmasNovas}" style="font-weight:bold"/>
+
+                <h:outputText value="Turmas no Último Período: "/>
+                <h:outputText value="#{homeBean.turmasUltimoPer}" style="font-weight:bold"/>
+
+                <h:outputText value="Total de Turmas: "/>
+                <h:outputText value="#{homeBean.totalTurmas}" style="font-weight:bold"/>
+
+                <h:outputText value="Total de Cursos: "/>
+                <h:outputText value="#{homeBean.totalCursos}" style="font-weight:bold"/>
+            </h:panelGrid>
+            <fieldset style="border: 1px solid #77D5F7;padding: 3px;">
+                <legend style="padding: 6px; font-weight: bold;">Salas</legend>
+                <h:panelGrid columns="2" cellpadding="4" cellspacing="10">
+                    <h:outputText value="Total de Equipamentos Defeituosos: "/>
+                    <h:outputText value="#{homeBean.totalEquipamentosDefeituosos}" style="font-weight:bold"/>
+
+                    <h:outputText value="Total de Salas: "/>
+                    <h:outputText value="#{homeBean.totalSalas}" style="font-weight:bold"/>
+
+                    <h:outputText value="Total de Blocos: "/>
+                    <h:outputText value="#{homeBean.totalBlocos}" style="font-weight:bold"/>
+                </h:panelGrid>
+            </fieldset>
+        </p:fieldset>
+
+        <!-- Gráfico Salas -->
+        <p:pieChart id="grafSalas" value="#{homeBean.graficoSalas}" legendPosition="e" showDataLabels="true"
+                    title="Salas Uninorte" style="width: 400px; height: 300px; float: right;"/>
+
+        <!-- Detalhamento da Sala -->
+        <p:dialog id="detS" widgetVar="detalhaSala" header="Detalhamento do Equipamento da Sala" width="500" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+            <p:graphicImage id="ac" alt="Acessibilidade" style="border: none; float: right;" value="/resources/imgs/acs.png" rendered="#{homeBean.sala.andar eq 'Térreo' || homeBean.sala.andar eq 'Subsolo'}"/>
+            <p:tooltip for="ac" value="Sala com Acessibilidade" showEffect="fade" hideEffect="fade"/>
+            <h:panelGrid id="detSala" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Número: "/>
+                <h:outputText value="#{homeBean.sala.numero}" style="font-weight:bold"/>
+
+                <h:outputText value="Capacidade: "/>
+                <h:outputText value="#{homeBean.sala.capacidade}" style="font-weight:bold"/>
+
+                <h:outputText value="Situação: "/>
+                <h:outputText value="#{homeBean.sala.situacao}" style="font-weight:bold; color: green" rendered="#{homeBean.sala.situacao eq 'Liberada'}"/>
+                <h:outputText value="#{homeBean.sala.situacao}" style="font-weight:bold; color: darkred" rendered="#{homeBean.sala.situacao eq 'Bloqueada'}"/>
+
+                <h:outputText value="Observação da Sala: "/>
+                <p:panel style="border: none; max-width: 50px;">
+                    <h:outputText value="#{homeBean.sala.obsSituacao}" style="font-weight:bold; color: darkred;"/>
+                </p:panel>
+
+                <h:outputText value="Bloco: "/>
+                <h:outputText value="#{homeBean.sala.bloco.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Andar: "/>
+                <h:outputText value="#{homeBean.sala.andar}" style="font-weight:bold"/>
+
+            </h:panelGrid>
+            <fieldset style="border: 1px solid #77D5F7;padding: 3px;">
+                <legend style="padding: 6px; font-weight: bold;">Cadeira</legend>
+                <p>
+                    <h:panelGrid id="detSalaCadeira" columns="2" cellpadding="4" cellspacing="10">
+                        <h:outputText value="Tipo de Cadeira: "/>
+                        <h:outputText value="#{homeBean.sala.cadeira.descricao}" style="font-weight:bold"/>
+
+                        <h:outputLabel value="Proprietário: "/>
+                        <h:outputText value="#{homeBean.sala.cadeira.proprietario}" style="font-weight:bold"/>
+
+                        <h:outputText value="Tamanho da Cadeira: "/>
+                        <h:outputText value="#{homeBean.sala.tamanhoCad}" style="font-weight:bold"/>
+                    </h:panelGrid>
+                </p>
+            </fieldset>
+            <br />
+            <p:dataTable id="tabelaEquipSala" value="#{homeBean.eqsDaSala}" 
+                         var="e" rows="5" paginator="true" paginatorPosition="bottom" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"
+                         emptyMessage="Não foram encontrados Equipamentos nesta Sala">
+
+                <f:facet name="header">
+                    <h:outputText value="Lista de Equipamentos da Sala"/>
+                </f:facet>
+
+                <p:column width="150">
+                    <f:facet name="header">
+                        <h:outputText value="Equipamento"/>
+                    </f:facet>
+                    #{e.equipamento.nome}
+                </p:column>
+                <p:column width="70">
+                    <f:facet name="header">
+                        <h:outputText value="Quantidade"/>
+                    </f:facet>
+                    #{e.qtd}
+                </p:column>
+                <p:column>
+                    <f:facet name="header">
+                        <h:outputText value="Situação"/>
+                    </f:facet>
+                    #{e.situacao}
+                </p:column>
+                <p:column width="100">
+                    <f:facet name="header">
+                        <h:outputText value="OBS Situação"/>
+                    </f:facet>
+                    #{e.obsSituacaoE}
+                </p:column>
+            </p:dataTable>
+        </p:dialog>
+    </ui:define>
+
+</ui:composition>

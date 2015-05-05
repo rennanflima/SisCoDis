@@ -1,0 +1,198 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:sec="http://www.springframework.org/security/facelets/tags">
+
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="shortcut icon" href="../favicon.ico" />
+        <link href="${facesContext.externalContext.requestContextPath}/resources/css/default.css" rel="stylesheet" type="text/css" />
+        <h:outputScript library="js" name="numeros.js"/>
+        <f:view contentType="text/html"/>
+        <link href="${facesContext.externalContext.requestContextPath}/resources/css/cssLayout.css" rel="stylesheet" type="text/css" />
+        <script type="text/javascript">
+            PrimeFaces.locales['pt'] = {
+                closeText: 'OK',
+                prevText: 'Anterior',
+                nextText: 'Próximo',
+                currentText: 'Começo',
+                monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+                monthNamesShort: ['Jan','Fev','Mar','Abr','Mai','Jun', 'Jul','Ago','Set','Out','Nov','Des'],
+                dayNames: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
+                dayNamesShort: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
+                dayNamesMin: ['D','S','T','Q','Q','S','S'],
+                weekHeader: 'Semana',
+                firstDay: 1,
+                isRTL: false,
+                showMonthAfterYear: false,
+                yearSuffix: '',
+                timeOnlyTitle: 'Só Horas',
+                timeText: 'Tempo',
+                hourText: 'Hora',
+                minuteText: 'Minuto',
+                secondText: 'Segundo',
+                currentText: 'Hora Atual',
+                ampm: false,
+                month: 'Mês',
+                week: 'Semana',
+                day: 'Dia',
+                allDayText : 'Todo Dia'
+            };
+        </script>
+        <title>Sistema de Controle e Distribuição</title>
+
+    </h:head>
+
+    <h:body>
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..."   
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+        <!--<h:graphicImage id="bg" value="/resources/imgs/fundo.jpg"/>-->
+        <div id="corpo_body" style="padding-bottom: 40px;">
+            <div id="tudo_corpo">
+                <div id="cabecalho_corpo">
+                    <div style="text-align: right; width: 990px;">
+                        <h:outputText value="#{usuarioBean.usuario.login} " />
+                        <p:graphicImage alt="Segurança" style="border: none" value="/resources/imgs/icon_cristal_key.png"/>
+                        <a href="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout"> Sair</a>
+                    </div>
+                    <br />
+                    <div id="top" style="text-align: center">
+                        <h:graphicImage value="/resources/imgs/banner.jpg"/>
+                    </div>
+                    <div id="menuCentral" class="ui-widget ui-widget-header ui-corner-all" >
+                        <sec:ifAnyGranted roles="ROLE_SICP">
+                            <a style="color: white; font-size: 15px;" href="/SisCoDis/sicp">Home</a> |
+                        </sec:ifAnyGranted>
+                        <sec:ifAnyGranted roles="ROLE_GER">
+                            <a style="color: white; font-size: 15px;" href="/SisCoDis/admin">Home</a> |
+                        </sec:ifAnyGranted>
+                        <sec:ifAnyGranted roles="ROLE_APOIO">
+                            <a style="color: white; font-size: 15px;" href="/SisCoDis/apoio">Home</a> |
+                        </sec:ifAnyGranted>
+                        <a style="color: white; font-size: 15px;" href="/SisCoDis/publico/institucional.xhtml">Institucional</a> |
+                        <a style="color: white; font-size: 15px;" href="/SisCoDis/publico/sicp.xhtml">SICP</a> |
+                        <a style="color: white; font-size: 15px;" href="http://www.uninorteac.com.br" target="_blank">Uninorte</a> |
+                        <a style="color: white; font-size: 15px;" href="/SisCoDis/publico/rema.xhtml">REMA System</a> |
+                        <a style="color: white; font-size: 15px;" href="#" target="_blank">Manual</a> |
+                        <a style="color: white; font-size: 15px;" href="/SisCoDis/publico/sobre.xhtml">Sobre</a>
+                    </div>
+                </div>
+                <br />
+                <div id="page">
+                    <div id="left" >
+                        <h:form id="menuLateral">
+                            <p:panelMenu>
+                                <p:submenu label="Cadastros">
+                                    <sec:ifAnyGranted roles="ROLE_GER, ROLE_SICP">
+                                        <p:menuitem value="Instituições" url="/sicp/instituicoes.xhtml" icon="ui-icon-contact"/>
+                                    </sec:ifAnyGranted>
+                                    <sec:ifAnyGranted roles="ROLE_GER">
+                                        <p:menuitem value="Turnos" url="/sicp/turnos.xhtml" icon="ui-icon-contact"/>
+                                    </sec:ifAnyGranted>
+                                    <sec:ifAnyGranted roles="ROLE_GER, ROLE_SICP">
+                                        <p:menuitem value="Cursos" url="/sicp/cursos.xhtml" icon="ui-icon-contact"/>
+                                        <p:menuitem value="Períodos" url="/sicp/periodos.xhtml" icon="ui-icon-contact"/>
+                                        <p:menuitem value="Turmas" url="/sicp/turmas.xhtml" icon="ui-icon-contact"/>
+                                        <p:menuitem value="Blocos" url="/apoio/blocos.xhtml" icon="ui-icon-contact"/>
+                                        <p:menuitem value="Tipo de Equipamento" url="/apoio/equipamentos.xhtml" icon="ui-icon-contact"/>
+                                        <p:menuitem value="Tipo de Cadeira" url="/apoio/cadeiras.xhtml" icon="ui-icon-contact"/>
+                                        <p:menuitem value="Salas" url="/apoio/salas.xhtml" icon="ui-icon-contact"/>
+                                    </sec:ifAnyGranted>
+                                    <p:menuitem value="Incluir Equipamento" url="/apoio/equipamentoSala.xhtml" icon="ui-icon-contact"/>
+                                    <sec:ifAnyGranted roles="ROLE_GER">
+                                        <p:menuitem value="Funcionários" url="/admin/funcionarios.xhtml" icon="ui-icon-contact"/>
+                                    </sec:ifAnyGranted>
+                                </p:submenu>
+                                <p:submenu label="Serviços">
+                                    <p:menuitem value="Localizar Turma/Sala" url="/publico/localizarTurmaSala.xhtml"/>
+                                    <p:menuitem value="Filtrar Salas por Equipamento" url="/apoio/salaTipoEquipamento.xhtml"/>
+                                    <sec:ifAnyGranted roles="ROLE_GER, ROLE_SICP">
+                                        <p:menuitem value="Bloqueia/Desbloqueia Sala" url="/servicos/bloqueioDesbloqueioSala/"/>
+                                        <p:menuitem value="Finalizar Semestre" url="/servicos/finalizarSemestre/"/>
+                                        <p:menuitem value="Distribuir Salas" url="/servicos/distribuicaoSalas/"/>
+                                    </sec:ifAnyGranted>
+                                </p:submenu>
+                                <p:submenu label="Relatórios">
+                                    <p:menuitem value="Salas dos Blocos por Andar" url="/pgRelatorios/salasBlocosPorAndar.xhtml" target="_blank" />
+                                    <p:menuitem value="Salas por Bloco" url="/pgRelatorios/salaBloco.xhtml"/>
+                                    <p:menuitem value="Salas sem Equipamentos" url="/pgRelatorios/salasSemEquip.xhtml" target="_blank" />
+                                    <p:menuitem value="Salas por Equipamentos" url="/pgRelatorios/salasPorEquipamentos.xhtml"/> 
+                                    <p:menuitem value="Salas com Equipamentos Defeituosos" url="/pgRelatorios/salasEquipDefeituosos.xhtml" target="_blank" /> 
+                                    <sec:ifAnyGranted roles="ROLE_GER, ROLE_SICP">
+                                        <p:menuitem value="Salas liberadas" url="/pgRelatorios/salasLiberadas.xhtml" target="_blank" />
+                                        <p:menuitem value="Salas bloqueadas" url="/pgRelatorios/salasBloqueadas.xhtml" target="_blank" />
+                                        <p:menuitem value="Distribuição de Salas por Curso" url="/pgRelatorios/distribuicaoSalasPorCurso.xhtml" target="_blank" />
+                                        <p:menuitem value="Turmas sem Salas" url="/pgRelatorios/turmasSemSalas.xhtml" target="_blank" /> 
+                                    </sec:ifAnyGranted>
+                                </p:submenu>
+                                <p:submenu label="Segurança">
+                                    <p:menuitem value="Trocar Senha" oncomplete="redefinir.show()" icon="ui-icon-gear"/>
+                                </p:submenu>
+                            </p:panelMenu>
+                        </h:form>
+                    </div>
+                    <div id="content" class="left_content">
+                        <ui:insert name="content"></ui:insert>
+                    </div>
+
+                </div>
+                <div class="clear"></div>
+                <div id="bottom" class="ui-widget ui-widget-header ui-corner-all">
+                    <table style="width: 990px;" border="0">
+                        <tr>
+                            <td style="width: 250px;"></td>
+                            <td align="center" style=" font-size: 12.5px">
+                                Copyright© 2012-2013 - Todos os Direitos Reservados<br/> 
+                                REMA System
+                            </td>
+                            <td style="width: 230px;">
+                                <h:graphicImage value="/resources/imgs/img_rodape.png" style="border-radius: 4px 4px 4px 4px;"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <h:form id="growlMsg">
+            <p:growl id="aviso" life="5000"/>
+        </h:form>
+
+        <p:dialog widgetVar="redefinir" header="Redefinir Senha" visible="false" draggable="false" resizable="false" width="480" modal="true">
+            <h:form id="trocaSenha">
+                <h:panelGrid columns="2">
+                    <p:outputLabel for="oldSenha" value="Senha Antiga: "/>
+                    <p:password id="oldSenha" value="#{trocaSenhaBean.oldSenha}" required="true" label="Senha Antiga" maxlength="45" size="40"
+                                requiredMessage="O campo 'Senha Antiga' é obrigatório"/>
+
+                    <p:outputLabel for="senha" value="Digite uma nova senha: "/>
+                    <p:password id="senha" value="#{trocaSenhaBean.senha}" feedback="true" inline="true"  maxlength="45" size="40"
+                                promptLabel="Por favor, digite uma senha!" weakLabel="Fraca"
+                                goodLabel="Boa" strongLabel="Forte" match="confirmaSenha" label="Digite uma nova senha" required="true"
+                                validatorMessage="As senhas não correspondem" requiredMessage="O campo 'Digite uma nova senha' é obrigatório"/>
+                    <p:outputLabel for="confirmaSenha" value="Confirme a senha: "/>
+                    <p:password id="confirmaSenha" label="Confirme a senha" required="true" maxlength="45" size="40"
+                                requiredMessage="O campo 'Confirme a senha' é obrigatório"/>
+                </h:panelGrid>
+                <br />
+                <div style="float: left; font-size: 11px; font-weight:bold">
+                    * Campos obrigatórios
+                </div>
+                <div style="float: right">
+                    <p:commandButton update="trocaSenha, :growlMsg:aviso" value="Salvar" action="#{trocaSenhaBean.alteraSenha}"/>
+                    <p:commandButton update="trocaSenha" value="Limpar" action="#{trocaSenhaBean.limpar()}" immediate="true" process="@this"/>
+                </div>
+            </h:form>
+            <p:ajax event="close" update="trocaSenha" listener="#{trocaSenhaBean.limpar()}"/>
+        </p:dialog>
+    </h:body>
+
+</html>

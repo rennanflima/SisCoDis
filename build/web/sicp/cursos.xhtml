@@ -1,0 +1,200 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"
+                template="../templates/_Template.xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="content">
+
+        <!-- Modal de Aguarde... -->
+        <p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();"/>  
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Aguarde..."   
+                  draggable="false" closable="false" resizable="false">  
+            <p:graphicImage value="/resources/imgs/ajaxloadingbar.gif" />
+        </p:dialog>
+
+        <p:fieldset legend="Cadastro de Cursos">
+            <h:form id="formCursos">
+                <p:growl id="aviso" life="5000"/>
+
+
+                <br/>
+                <br/>
+                <!-- Botão Novo -->
+                <p:commandButton value="Novo Curso" icon="ui-icon-document"
+                                 oncomplete="inserir.show()"/>
+                <br/>
+                <br/>
+                <!-- Tabela de Exibição -->
+                <p:dataTable id="tabelaCursos" value="#{cursosBean.cursos}"
+                             var="c" rows="5" paginator="true" paginatorPosition="bottom" paginatorTemplate="{CurrentPageReport}  {FirstPageLink} 
+                             {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" currentPageReportTemplate="{totalRecords} Reg./Pág. {currentPage} de {totalPages}"
+                             rowsPerPageTemplate="5,10,15" widgetVar="cadTable" 
+                             emptyMessage="Não foram encontrados Cursos cadastrados">
+
+                    <f:facet name="header">  
+                        <h:outputText value="LISTA DE CURSOS" />  
+                    </f:facet>
+
+                    <p:column style="width: 18px">
+                        <p:commandLink id="deta" update=":detCurso" oncomplete="detalhes.show()">
+                            <p:graphicImage alt="Detalhamento" style="border: none" value="/resources/imgs/search.png"/>
+                            <f:setPropertyActionListener value="#{c}" target="#{cursosBean.curso}"/>
+                        </p:commandLink>
+                        <p:tooltip for="deta" value="Exibe o detalhamento do Curso" showEffect="fade" hideEffect="fade"/>
+                    </p:column>
+                    
+                    <p:column sortBy="#{c.instituicao.nome}">
+                        <f:facet name="header">
+                            <h:outputText value="INSTITUIÇÃO"/>
+                        </f:facet>
+                        #{c.instituicao.sigla}
+                    </p:column>
+                    <p:column headerText="CÓDIGO" sortBy="#{c.codigo}" filterBy="#{c.codigo}" filterStyle="width: 50px;" filterMatchMode="startsWith">
+                        <!-- <f:facet name="header">
+                             <h:outputText value="CÓDIGO"/>
+                         </f:facet> -->
+                        #{c.codigo}
+                    </p:column>
+                    <p:column sortBy="#{c.nome}" filterBy="#{c.nome}" filterStyle="width: 115px;" filterMatchMode="startsWith">
+                        <f:facet name="header">
+                            <h:outputText value="NOME"/>
+                        </f:facet>
+                        #{c.nome}
+                    </p:column>
+                    <p:column sortBy="#{c.qtdPeriodos}">
+                        <f:facet name="header">
+                            <h:outputText value="QTD PERÍODOS"/>
+                        </f:facet>
+                        <center>
+                            #{c.qtdPeriodos}
+                        </center>
+                    </p:column>
+                    <p:column>
+                        <f:facet name="header">
+                            <h:outputText value="TURNO"/>
+                        </f:facet>
+                        <center>
+                            #{cursosBean.listaTurnosData(c)}
+                        </center>
+                    </p:column>
+                    <p:column width="160">
+                        <center>
+                            <f:facet name="header">
+                                <h:outputText value="AÇÕES"/>
+                            </f:facet>
+                            <p:commandButton value="Editar" oncomplete="inserir.show()" icon="ui-icon-pencil" action="#{cursosBean.carregaListaTurnos()}"
+                                             update=":cadastroC">
+                                <f:setPropertyActionListener value="#{c}" target="#{cursosBean.curso}"/>
+                            </p:commandButton>
+                            <p:commandButton value="Excluir" icon="ui-icon-trash" oncomplete="confirmation.show()">
+                                <f:setPropertyActionListener value="#{c}" target="#{cursosBean.curso}"/>
+                            </p:commandButton>
+                        </center>                    
+                    </p:column>
+                </p:dataTable>
+                <br />
+            </h:form>
+        </p:fieldset>
+
+        <!-- Caixa de Confirmação de Exclusão -->
+        <p:confirmDialog id="confirmDialog" message="Tem certeza que deseja excluir ?"  appendToBody="true"
+                         header="Confirmação de exclusão" severity="alert" widgetVar="confirmation" closable="false">  
+            <h:form>
+                <p:commandButton id="confirm" value="Sim" oncomplete="confirmation.hide()"  
+                                 action="#{cursosBean.excluir()}" update=":formCursos:tabelaCursos, :formCursos:aviso">
+                </p:commandButton>  
+                <p:commandButton id="decline" value="Não" onclick="confirmation.hide()" type="button" />   
+            </h:form>
+        </p:confirmDialog>
+
+        <!-- Modal do Formulário -->
+        <p:dialog widgetVar="inserir" resizable="false"
+                  header="Inserir Cursos" width="700"
+                  modal="true" appendToBody="true">
+            <h:form id="cadastroC">
+                <h:inputHidden value="#{cursosBean.curso.idCursos}"/>
+                <p:growl id="aviso2" life="5000"/>
+                <h:panelGrid columns="3" cellpadding="4" cellspacing="10">
+                    <p:outputLabel for="cod" value="Código: "/>
+                    <p:inputText id="cod" required="true" value="#{cursosBean.curso.codigo}" label="Código" size="10" maxlength="20"
+                                 onkeypress="return SomenteNumero(event)" requiredMessage="O campo 'Código' é obrigatório"
+                                 converterMessage="Digite apenas número no Código!">
+                        <f:convertNumber integerOnly="true"/>
+                    </p:inputText>
+                    <p:message id="msgCod" for="cod" display="icon"/>
+
+                    <p:outputLabel for="nome" value="Nome: "/>
+                    <p:inputText id="nome" required="true" value="#{cursosBean.curso.nome}" label="Nome" size="60" maxlength="50"
+                                 requiredMessage="O campo 'Nome' é obrigatório"
+                                 validatorMessage="É permitido apenas letras no campo 'Nome'">
+                        <f:validateRegex pattern="([A-Za-zÀ-ú ]+)"/>
+                    </p:inputText>
+                    <p:message id="msgNome" for="nome" display="icon"/>
+
+                    <p:outputLabel for="qtdPeriodo" value="Quantidade de Períodos: "/>
+                    <p:inputText id="qtdPeriodo" required="true" value="#{cursosBean.curso.qtdPeriodos}" label="Quantidade de Períodos"
+                                 onkeypress="return SomenteNumero(event)" requiredMessage="O campo 'Quantidade de Períodos' é obrigatório"
+                                 size="10" maxlength="20" converterMessage="Digite apenas número na Quantidade de Períodos!">
+                        <f:convertNumber integerOnly="true"/>
+                    </p:inputText>
+                    <p:message id="msgQtdP" for="qtdPeriodo" display="icon"/>
+
+                    <p:outputLabel value="Instituição: " for="insti"/>
+                    <p:selectOneMenu id="insti" required="true" value="#{cursosBean.idInstituicoes}" 
+                                     immediate="true" requiredMessage="O campo 'Instituição' é obrigatório">
+                        <f:selectItem itemLabel="Selecione uma Instituição..." itemValue="" /> 
+                        <f:selectItems value="#{instituicoesBean.instituicoes}" var="i"
+                                       itemLabel="#{i.sigla}" itemValue="#{i.idInstituicoes}" />
+                    </p:selectOneMenu>
+                    <p:message id="msgInsti" for="insti" display="icon"/>
+
+                    <p:outputLabel for="turno" value="Turno(s): "/>
+                    <p:selectManyCheckbox id="turno" layout="pageDirection" value="#{cursosBean.turnos}" required="true"
+                                          requiredMessage="O campo 'Turno(s)' é obrigatório">
+                        <f:selectItems value="#{turnosBean.turnos}" var="tr"
+                                       itemLabel="#{tr.nome}" itemValue="#{tr.idTurnos}"/>
+                    </p:selectManyCheckbox>
+                </h:panelGrid>
+                
+                <br />
+                <div style="float: left; font-size: 11px; font-weight:bold;">
+                    * Campos obrigatórios
+                </div>
+                <div style="float: right">
+                    <p:commandButton update=":formCursos:tabelaCursos, :formCursos:aviso, cadastroC" value="Salvar" icon="ui-icon-disk" action="#{cursosBean.salvar}"/>
+                    <p:commandButton update="cadastroC" value="Limpar" action="#{cursosBean.limpar()}" immediate="true" process="@this"/>
+                </div>
+            </h:form>
+            <p:ajax event="close" update="cadastroC" listener="#{cursosBean.limpar()}"/>
+        </p:dialog>
+
+        <!-- Detalhamento do Curso -->
+        <p:dialog id="det" widgetVar="detalhes" header="Detalhamento do Curso" width="500" appendToBody="true"
+                  modal="true" resizable="false" showEffect="clip" hideEffect="fold">
+
+            <h:panelGrid id="detCurso" columns="2" cellpadding="4" cellspacing="10">
+
+                <h:outputText value="Código: "/>
+                <h:outputText value="#{cursosBean.curso.codigo}" style="font-weight:bold"/>
+
+                <h:outputText value="Nome: "/>
+                <h:outputText value="#{cursosBean.curso.nome}" style="font-weight:bold"/>
+
+                <h:outputText value="Quantidade de Períodos: "/>
+                <h:outputText value="#{cursosBean.curso.qtdPeriodos}" style="font-weight:bold"/>
+
+                <h:outputText value="Instituição: "/>
+                <h:outputText value="#{cursosBean.curso.instituicao.sigla}" style="font-weight:bold"/>
+                
+                <h:outputText value="Turno(s): "/>
+                <h:outputText value="#{cursosBean.listaTurnos()}" style="font-weight:bold"/>
+            </h:panelGrid>
+        </p:dialog>
+
+    </ui:define>
+</ui:composition>
