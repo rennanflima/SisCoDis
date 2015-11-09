@@ -33,7 +33,7 @@ public class MailEnviaAuth {
                 new javax.mail.Authenticator() {
 
                     protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication("sistemasuninorte@gmail.com", "fsuni2012");
+                        return new PasswordAuthentication("sistemasuninorte@gmail.com", "fsuni2012122");
                     }
                 });
 
